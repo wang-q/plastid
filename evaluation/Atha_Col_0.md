@@ -11,6 +11,7 @@
   - [Mapping](#mapping)
   - [Depth](#depth)
   - [Merge all results](#merge-all-results)
+  - [Remove intermediate files](#remove-intermediate-files)
 
 ## 基本信息
 
@@ -21,7 +22,7 @@
 + 覆盖度 4,970,359,200 / 119,667,750 = 41
 
 ```shell script
-READS=$(
+BASES=$(
     faops n50 -N 0 -S \
         ~/data/organelles/ena/SRR616966_1.fastq.gz \
         ~/data/organelles/ena/SRR616966_2.fastq.gz |
@@ -37,13 +38,13 @@ GENOME=$(
         '
 )
 
-echo ${READS}
+echo ${BASES}
 # 4970359200
 
 echo ${GENOME}
 # 119667750
 
-bc <<< "${READS} / ${GENOME}"
+bc <<< "${BASES} / ${GENOME}"
 
 ```
 
@@ -426,3 +427,12 @@ done
 | 32   | Pt    | 154478    | 154478    | 1.0000  | 481751895 | 3118.58 | 2   | 4504 |
 
 
+## Remove intermediate files
+
+```shell script
+cd ~/data/organelles/evaluation/col_0
+
+find . -type d -name "trim" | xargs rm -fr
+find . -type d -name "mapping" | xargs rm -fr
+
+```
