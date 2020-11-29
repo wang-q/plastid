@@ -20,3 +20,24 @@ faops size genome.fa > chr.sizes
 
 ```
 
+
+## Oryza sativa Japonica Group Cultivar Nipponbare
+
+```shell script
+mkdir -p ~/data/organelles/genome/nip
+cd ~/data/organelles/genome/nip
+
+wget -N ftp://ftp.ensemblgenomes.org/pub/release-45/plants/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz
+
+faops order Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz \
+    <(for chr in $(seq 1 1 12) Mt Pt; do echo $chr; done) \
+    genome.fa
+
+# bwa index
+bwa index genome.fa
+
+# chr.sizes
+faops size genome.fa > chr.sizes
+
+```
+
