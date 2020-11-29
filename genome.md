@@ -12,7 +12,11 @@ faops order Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz \
     <(for chr in {1,2,3,4,5,Mt,Pt}; do echo $chr; done) \
     genome.fa
 
+# bwa index
 bwa index genome.fa
+
+# chr.sizes
+faops size genome.fa > chr.sizes
 
 ```
 
