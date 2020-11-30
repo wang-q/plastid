@@ -121,9 +121,6 @@ for item in "${ARRAY[@]}" ; do
             --filter "adapter artifact"
 
         bsub -q mpi -n 24 -J "${BASE_NAME}" "
-            bash 2_fastqc.sh
-            bash 2_insert_size.sh
-            bash 2_kat.sh
             bash 2_trim.sh
         "        
     else
@@ -149,6 +146,8 @@ for item in "${ARRAY[@]}" ; do
     popd
 
 done
+
+# find . -type f -wholename "*trim/R*.fq.gz"
 
 ```
 
@@ -196,6 +195,12 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     mkdir -p ${BASE_NAME}/mapping
     pushd ${BASE_NAME}/mapping
     
+    if [ -f R.sort.bai ]; then
+        echo >&2 '    R.sort.bai already presents'
+        popd;
+        continue;
+    fi
+
     bsub -q mpi -n 24 -J "${BASE_NAME}-mapping" '
 
         # Pipe all reads together as we do not need mate info
@@ -249,6 +254,12 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth
+
+    if [ -f R.mosdepth.summary.txt ]; then
+        echo >&2 '    R.mosdepth.summary.txt already presents'
+        popd;
+        continue;
+    fi
 
     mosdepth R ../mapping/R.sort.bam
     
