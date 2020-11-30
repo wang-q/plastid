@@ -19,13 +19,13 @@
 ```shell script
 BASES=$(
     faops n50 -N 0 -S \
-        ~/data/organelles/ena/SRR1542423_1.fastq.gz \
-        ~/data/organelles/ena/SRR1542423_2.fastq.gz |
+        ~/data/plastid/ena/SRR1542423_1.fastq.gz \
+        ~/data/plastid/ena/SRR1542423_2.fastq.gz |
     cut -f 2
 )
 
 GENOME=$(
-    faops size ~/data/organelles/genome/a17/genome.fa |
+    faops size ~/data/plastid/genome/a17/genome.fa |
         cut -f 2 |
         perl -nl -e '
             $sum += $_;
@@ -46,8 +46,8 @@ bc <<< "${BASES} / ${GENOME}"
 ## Symlink
 
 ```shell script
-mkdir -p ~/data/organelles/evaluation/a17
-cd ~/data/organelles/evaluation/a17
+mkdir -p ~/data/plastid/evaluation/a17
+cd ~/data/plastid/evaluation/a17
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     BASE_NAME=SRR1542423_${NAME}
@@ -72,7 +72,7 @@ done
 ## Trim and cutoff
 
 ```shell script
-cd ~/data/organelles/evaluation/a17
+cd ~/data/plastid/evaluation/a17
 
 # 倍数因子::cutoff
 ARRAY=(

@@ -3,8 +3,8 @@
 ## *Arabidopsis thaliana* Col-0
 
 ```shell script
-mkdir -p ~/data/organelles/genome/col_0
-cd ~/data/organelles/genome/col_0
+mkdir -p ~/data/plastid/genome/col_0
+cd ~/data/plastid/genome/col_0
 
 wget -N ftp://ftp.ensemblgenomes.org/pub/release-45/plants/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz
 
@@ -24,8 +24,8 @@ faops size genome.fa > chr.sizes
 ## *Oryza sativa* Japonica Group Cultivar Nipponbare
 
 ```shell script
-mkdir -p ~/data/organelles/genome/nip
-cd ~/data/organelles/genome/nip
+mkdir -p ~/data/plastid/genome/nip
+cd ~/data/plastid/genome/nip
 
 wget -N ftp://ftp.ensemblgenomes.org/pub/release-45/plants/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz
 
@@ -44,8 +44,8 @@ faops size genome.fa > chr.sizes
 ## *Medicago truncatula* A17
 
 ```shell script
-mkdir -p ~/data/organelles/genome/a17
-cd ~/data/organelles/genome/a17
+mkdir -p ~/data/plastid/genome/a17
+cd ~/data/plastid/genome/a17
 
 for ACCESSION in "NC_003119" "NC_029641"; do
     URL=$(printf "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&rettype=%s&id=%s&retmode=text" "fasta" "${ACCESSION}");
@@ -83,8 +83,8 @@ faops size genome.fa > chr.sizes
 ## *Glycine max* Williams 82
 
 ```shell script
-mkdir -p ~/data/organelles/genome/w82
-cd ~/data/organelles/genome/w82
+mkdir -p ~/data/plastid/genome/w82
+cd ~/data/plastid/genome/w82
 
 aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/004/515/GCF_000004515.5_Glycine_max_v2.1/GCF_000004515.5_Glycine_max_v2.1_genomic.fna.gz
 

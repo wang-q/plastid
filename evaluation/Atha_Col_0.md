@@ -24,13 +24,13 @@
 ```shell script
 BASES=$(
     faops n50 -N 0 -S \
-        ~/data/organelles/ena/SRR616966_1.fastq.gz \
-        ~/data/organelles/ena/SRR616966_2.fastq.gz |
+        ~/data/plastid/ena/SRR616966_1.fastq.gz \
+        ~/data/plastid/ena/SRR616966_2.fastq.gz |
     cut -f 2
 )
 
 GENOME=$(
-    faops size ~/data/organelles/genome/col_0/genome.fa |
+    faops size ~/data/plastid/genome/col_0/genome.fa |
         cut -f 2 |
         perl -nl -e '
             $sum += $_;
@@ -65,8 +65,8 @@ pip install deeptools
 ## Symlink
 
 ```shell script
-mkdir -p ~/data/organelles/evaluation/col_0
-cd ~/data/organelles/evaluation/col_0
+mkdir -p ~/data/plastid/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -91,7 +91,7 @@ done
 ## Trim and cutoff
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 # 倍数因子::cutoff
 ARRAY=(
@@ -169,7 +169,7 @@ done
 ## `kat hist` and `kat gcp`
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -202,7 +202,7 @@ done
 ## Mapping
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -254,7 +254,7 @@ done
 * Depth via `mosdepth`
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -275,7 +275,7 @@ done
 * Covered regions via `spanr`
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -315,7 +315,7 @@ done
 * Combine results
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -358,7 +358,7 @@ done
 ## Merge all results
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     BASE_NAME=SRR616966_${NAME}
@@ -430,7 +430,7 @@ done
 ## Remove intermediate files
 
 ```shell script
-cd ~/data/organelles/evaluation/col_0
+cd ~/data/plastid/evaluation/col_0
 
 find . -type d -name "trim" | xargs rm -fr
 find . -type d -name "mapping" | xargs rm -fr

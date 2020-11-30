@@ -19,13 +19,13 @@
 ```shell script
 BASES=$(
     faops n50 -N 0 -S \
-        ~/data/organelles/ena/SRR10296600_1.fastq.gz \
-        ~/data/organelles/ena/SRR10296600_2.fastq.gz |
+        ~/data/plastid/ena/SRR10296600_1.fastq.gz \
+        ~/data/plastid/ena/SRR10296600_2.fastq.gz |
     cut -f 2
 )
 
 GENOME=$(
-    faops size ~/data/organelles/genome/w82/genome.fa |
+    faops size ~/data/plastid/genome/w82/genome.fa |
         cut -f 2 |
         perl -nl -e '
             $sum += $_;
@@ -46,8 +46,8 @@ bc <<< "${BASES} / ${GENOME}"
 ## Symlink
 
 ```shell script
-mkdir -p ~/data/organelles/evaluation/w82
-cd ~/data/organelles/evaluation/w82
+mkdir -p ~/data/plastid/evaluation/w82
+cd ~/data/plastid/evaluation/w82
 
 for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     BASE_NAME=SRR10296600_${NAME}

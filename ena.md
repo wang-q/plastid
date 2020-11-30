@@ -3,8 +3,8 @@
 ## evaluation
 
 ```shell script
-mkdir -p ~/data/organelles/ena
-cd ~/data/organelles/ena
+mkdir -p ~/data/plastid/ena
+cd ~/data/plastid/ena
 
 cat << EOF > source.csv
 SRX202246,Atha_Col_0,HiSeq 2000 PE100
