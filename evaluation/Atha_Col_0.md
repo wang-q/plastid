@@ -1,9 +1,9 @@
-# Arabidopsis thaliana Col-0 倍数因子测试
+# *Arabidopsis thaliana* Col-0 倍数因子测试
 
 
 [TOC levels=1-3]: # ""
 
-- [Arabidopsis thaliana Col-0 倍数因子测试](#arabidopsis-thaliana-col-0-倍数因子测试)
+- [*Arabidopsis thaliana* Col-0 倍数因子测试](#arabidopsis-thaliana-col-0-倍数因子测试)
   - [基本信息](#基本信息)
   - [Symlink](#symlink)
   - [Trim and cutoff](#trim-and-cutoff)
@@ -210,7 +210,7 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32; do
     mkdir -p ${BASE_NAME}/mapping
     pushd ${BASE_NAME}/mapping
     
-    bsub -q mpi -n 24 -J "${BASE_NAME}" '
+    bsub -q mpi -n 24 -J "${BASE_NAME}-mapping" '
 
         # Pipe all reads together as we do not need mate info
         gzip -dcf \
@@ -434,5 +434,8 @@ cd ~/data/organelles/evaluation/col_0
 
 find . -type d -name "trim" | xargs rm -fr
 find . -type d -name "mapping" | xargs rm -fr
+
+find . -type f -name "core.*" | xargs rm
+find . -type f -name "output.*" | xargs rm
 
 ```
