@@ -333,7 +333,7 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
             ); 
             print qq(\n);
         ' |
-        (cat join.tsv | sed '2,6d' && cat) \
+        (cat join.tsv | sed '2,13d' && cat) \
         > combine.tsv
 
     popd
@@ -354,7 +354,6 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth > /dev/null
-
 
     echo -e "Fold\tchrom\n${NAME}\tNc\n${NAME}\tMt\n${NAME}\tPt" |
         tsv-join -H --filter-file combine.tsv --key-fields chrom --append-fields 2-8
