@@ -45,6 +45,7 @@ echo ${GENOME}
 # 119667750
 
 bc <<< "${BASES} / ${GENOME}"
+# 41
 
 ```
 
@@ -68,8 +69,8 @@ pip install deeptools
 mkdir -p ~/data/plastid/evaluation/col_0
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     mkdir -p ${BASE_NAME}/1_genome
     pushd ${BASE_NAME}/1_genome
@@ -94,31 +95,27 @@ done
 cd ~/data/plastid/evaluation/col_0
 
 # 倍数因子::cutoff
-ARRAY=(
-    '0::0'
-    '0.25::10'
-    '0.5::20'
-    '1::40'
-    '2::80'
-    '4::160'
-    '8::320'
-    '16::640'
-    '32::1280'
-    '64::2560'
-)
+ARRAY=()
+DEPTH=40
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    CUTOFF=$(bc <<< "(${DEPTH} * ${FOLD}) / 1")
+    ARRAY+=("${FOLD}::${CUTOFF}")
+done
+echo "${ARRAY[@]}"
+#0::0 0.25::10 0.5::20 1::40 2::80 4::160 8::320 16::640 32::1280 64::2560
 
 for item in "${ARRAY[@]}" ; do
-    NAME="${item%%::*}"
+    FOLD="${item%%::*}"
     CUTOFF="${item##*::}"
 
     echo 1>&2 "==> ${item}"
     
-    BASE_NAME=SRR616966_${NAME}
+    BASE_NAME=SRR616966_${FOLD}
     pushd ${BASE_NAME}
     
     rm *.sh
         
-    if [[ "${NAME}" == "0" ]]; then
+    if [[ "${FOLD}" == "0" ]]; then
         anchr template \
             --genome 119667750 \
             --parallel 24 \
@@ -172,8 +169,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     mkdir -p ${BASE_NAME}/kat
     pushd ${BASE_NAME}/kat
@@ -205,8 +202,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     mkdir -p ${BASE_NAME}/mapping
     pushd ${BASE_NAME}/mapping
@@ -255,8 +252,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     echo "==> ${BASE_NAME}"
 
@@ -357,8 +354,8 @@ Multiseed full-index search: 00:01:16
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
@@ -384,8 +381,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
@@ -425,8 +422,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
@@ -468,15 +465,15 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/col_0
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR616966_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth > /dev/null
 
-    echo -e "Fold\tchrom\n${NAME}\tNc\n${NAME}\tMt\n${NAME}\tPt" |
+    echo -e "Fold\tchrom\n${FOLD}\tNc\n${FOLD}\tMt\n${FOLD}\tPt" |
         tsv-join -H --filter-file combine.tsv --key-fields chrom --append-fields 2-8
 
     popd > /dev/null
