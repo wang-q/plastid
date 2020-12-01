@@ -211,36 +211,37 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     mkdir -p ${BASE_NAME}/mapping
     pushd ${BASE_NAME}/mapping
     
+    if [ -f R.sort.bai ]; then
+        echo >&2 '    R.sort.bai already presents'
+        popd;
+        continue;
+    fi
+
     bsub -q mpi -n 24 -J "${BASE_NAME}-mapping" '
+        # export JAVA_OPTS="-Xmx20G"
 
         # Pipe all reads together as we do not need mate info
         gzip -dcf \
             ../2_illumina/trim/Q25L60/R1.fq.gz \
             ../2_illumina/trim/Q25L60/R2.fq.gz \
             ../2_illumina/trim/Q25L60/Rs.fq.gz |
-            bwa mem -M -t 20 \
-                ../../../../genome/col_0/genome.fa \
-                /dev/stdin |
-            pigz -p 4 \
-            > R.sam.gz
-        
-        picard CleanSam \
-            --INPUT R.sam.gz \
-            --OUTPUT R.clean.bam \
-            --VALIDATION_STRINGENCY LENIENT
-    
-        picard SortSam \
-            --INPUT R.clean.bam \
-            --OUTPUT R.sort.bam \
-            --SORT_ORDER coordinate \
-            --VALIDATION_STRINGENCY LENIENT
+            faops filter -l 0 stdin stdout | # ignore QUAL
+            bowtie2 -p 20 --very-fast -t \
+                -x ../../../../genome/col_0/genome.fa \
+                -f -U /dev/stdin |
+            picard CleanSam \
+                --INPUT /dev/stdin \
+                --OUTPUT /dev/stdout \
+                --VALIDATION_STRINGENCY LENIENT --COMPRESSION_LEVEL 0 |
+            picard SortSam \
+                --INPUT /dev/stdin \
+                --OUTPUT R.sort.bam \
+                --SORT_ORDER coordinate \
+                --VALIDATION_STRINGENCY LENIENT --COMPRESSION_LEVEL 1
     
         picard BuildBamIndex \
             --INPUT R.sort.bam \
             --VALIDATION_STRINGENCY LENIENT
-            
-        find . -name "R.sam.gz" | xargs rm
-        find . -name "R.clean.bam" | xargs rm
     '
     
     popd
@@ -249,6 +250,105 @@ done
 
 ```
 
+* Stats of mapping
+
+```shell script
+cd ~/data/plastid/evaluation/col_0
+
+for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${NAME}
+    
+    echo "==> ${BASE_NAME}"
+
+    cat ${BASE_NAME}/mapping/output.* |
+        grep -Pzo '(?s)Multiseed full.+overall alignment rate'
+
+done
+
+```
+
+```text
+==> SRR616966_0
+Multiseed full-index search: 00:05:38
+42753121 reads; of these:
+  42753121 (100.00%) were unpaired; of these:
+    8115126 (18.98%) aligned 0 times
+    24636878 (57.63%) aligned exactly 1 time
+    10001117 (23.39%) aligned >1 times
+81.02% overall alignment rate
+==> SRR616966_0.25
+Multiseed full-index search: 00:04:59
+34873004 reads; of these:
+  34873004 (100.00%) were unpaired; of these:
+    431365 (1.24%) aligned 0 times
+    24462648 (70.15%) aligned exactly 1 time
+    9978991 (28.62%) aligned >1 times
+98.76% overall alignment rate
+==> SRR616966_0.5
+Multiseed full-index search: 00:02:56
+20354104 reads; of these:
+  20354104 (100.00%) were unpaired; of these:
+    311278 (1.53%) aligned 0 times
+    10796915 (53.05%) aligned exactly 1 time
+    9245911 (45.43%) aligned >1 times
+98.47% overall alignment rate
+==> SRR616966_1
+Multiseed full-index search: 00:01:48
+11994918 reads; of these:
+  11994918 (100.00%) were unpaired; of these:
+    261222 (2.18%) aligned 0 times
+    3631401 (30.27%) aligned exactly 1 time
+    8102295 (67.55%) aligned >1 times
+97.82% overall alignment rate
+==> SRR616966_2
+Multiseed full-index search: 00:01:50
+11321357 reads; of these:
+  11321357 (100.00%) were unpaired; of these:
+    222341 (1.96%) aligned 0 times
+    3546897 (31.33%) aligned exactly 1 time
+    7552119 (66.71%) aligned >1 times
+98.04% overall alignment rate
+==> SRR616966_4
+Multiseed full-index search: 00:01:37
+10840616 reads; of these:
+  10840616 (100.00%) were unpaired; of these:
+    195607 (1.80%) aligned 0 times
+    3493232 (32.22%) aligned exactly 1 time
+    7151777 (65.97%) aligned >1 times
+98.20% overall alignment rate
+==> SRR616966_8
+Multiseed full-index search: 00:01:32
+9696276 reads; of these:
+  9696276 (100.00%) were unpaired; of these:
+    178257 (1.84%) aligned 0 times
+    3248561 (33.50%) aligned exactly 1 time
+    6269458 (64.66%) aligned >1 times
+98.16% overall alignment rate
+==> SRR616966_16
+Multiseed full-index search: 00:01:31
+9362828 reads; of these:
+  9362828 (100.00%) were unpaired; of these:
+    166340 (1.78%) aligned 0 times
+    3225383 (34.45%) aligned exactly 1 time
+    5971105 (63.77%) aligned >1 times
+98.22% overall alignment rate
+==> SRR616966_32
+Multiseed full-index search: 00:01:27
+9129676 reads; of these:
+  9129676 (100.00%) were unpaired; of these:
+    156036 (1.71%) aligned 0 times
+    3215393 (35.22%) aligned exactly 1 time
+    5758247 (63.07%) aligned >1 times
+98.29% overall alignment rate
+==> SRR616966_64
+Multiseed full-index search: 00:01:16
+7634180 reads; of these:
+  7634180 (100.00%) were unpaired; of these:
+    141731 (1.86%) aligned 0 times
+    2003031 (26.24%) aligned exactly 1 time
+    5489418 (71.91%) aligned >1 times
+98.14% overall alignment rate
+```
 
 ## Depth
 
@@ -264,6 +364,12 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth
+
+    if [ -f R.mosdepth.summary.txt ]; then
+        echo >&2 '    R.mosdepth.summary.txt already presents'
+        popd;
+        continue;
+    fi
 
     mosdepth R ../mapping/R.sort.bam
     
@@ -290,11 +396,12 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
         perl -nla -F"\t" -e '
             $F[3] == 0 and next;
             $start = $F[1] + 1;
+            $end = $F[2];
             if ($start == $F[2]) {
                 print qq($F[0]:$start);
             }
             else {
-                print qq($F[0]:$start-$F[2]);
+                print qq($F[0]:$start-$end);
             }
         ' |
         spanr cover stdin -o covered.yml
@@ -369,7 +476,6 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth > /dev/null
 
-
     echo -e "Fold\tchrom\n${NAME}\tNc\n${NAME}\tMt\n${NAME}\tPt" |
         tsv-join -H --filter-file combine.tsv --key-fields chrom --append-fields 2-8
 
@@ -391,44 +497,44 @@ done
 
 | Fold | chrom | chrLength | covLength | covRate | bases      | mean  | min | max    |
 |:-----|:------|:----------|:----------|:--------|:-----------|:------|:----|:-------|
-| 0    | Nc    | 119146348 | 118886986 | 0.9978  | 2866772031 | 24.06 | 0   | 110517 |
-| 0.25 | Nc    | 119146348 | 118741324 | 0.9966  | 2848469903 | 23.91 | 0   | 110633 |
-| 0.5  | Nc    | 119146348 | 78550490  | 0.6593  | 1438110229 | 12.07 | 0   | 110731 |
-| 1    | Nc    | 119146348 | 14305813  | 0.1201  | 619823713  | 5.20  | 0   | 110584 |
-| 2    | Nc    | 119146348 | 9518949   | 0.0799  | 557173606  | 4.68  | 0   | 110505 |
-| 4    | Nc    | 119146348 | 6785818   | 0.0570  | 515540352  | 4.33  | 0   | 110641 |
-| 8    | Nc    | 119146348 | 4074559   | 0.0342  | 452938381  | 3.80  | 0   | 110311 |
-| 16   | Nc    | 119146348 | 2821962   | 0.0237  | 427477095  | 3.59  | 0   | 110344 |
-| 32   | Nc    | 119146348 | 1813743   | 0.0152  | 405003054  | 3.40  | 0   | 109429 |
-| 64   | Nc    | 119146348 | 1233227   | 0.0104  | 388257853  | 3.26  | 0   | 107774 |
+| 0    | Nc    | 119146348 | 118888104 | 0.9978  | 2849796891 | 23.92 | 0   | 106651 |
+| 0.25 | Nc    | 119146348 | 118743926 | 0.9966  | 2832037578 | 23.77 | 0   | 106647 |
+| 0.5  | Nc    | 119146348 | 78534610  | 0.6591  | 1422224302 | 11.94 | 0   | 106645 |
+| 1    | Nc    | 119146348 | 14286243  | 0.1199  | 604519043  | 5.07  | 0   | 106633 |
+| 2    | Nc    | 119146348 | 9511521   | 0.0798  | 542266145  | 4.55  | 0   | 106620 |
+| 4    | Nc    | 119146348 | 6793685   | 0.0570  | 501052722  | 4.21  | 0   | 106587 |
+| 8    | Nc    | 119146348 | 4094381   | 0.0344  | 438937996  | 3.68  | 0   | 106477 |
+| 16   | Nc    | 119146348 | 2853174   | 0.0239  | 414090706  | 3.48  | 0   | 106210 |
+| 32   | Nc    | 119146348 | 1854590   | 0.0156  | 392469946  | 3.29  | 0   | 105590 |
+| 64   | Nc    | 119146348 | 1282693   | 0.0108  | 376843211  | 3.16  | 0   | 104014 |
 
 
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
-| 0    | Mt    | 366924    | 363942    | 0.9919  | 58950023 | 160.66 | 0   | 1916 |
-| 0.25 | Mt    | 366924    | 363819    | 0.9915  | 58793180 | 160.23 | 0   | 1920 |
-| 0.5  | Mt    | 366924    | 364006    | 0.9920  | 58751358 | 160.12 | 0   | 1905 |
-| 1    | Mt    | 366924    | 363815    | 0.9915  | 58760072 | 160.14 | 0   | 1948 |
-| 2    | Mt    | 366924    | 363524    | 0.9907  | 58719881 | 160.03 | 0   | 1929 |
-| 4    | Mt    | 366924    | 358250    | 0.9764  | 55570271 | 151.45 | 0   | 1917 |
-| 8    | Mt    | 366924    | 98518     | 0.2685  | 7948565  | 21.66  | 0   | 1930 |
-| 16   | Mt    | 366924    | 30839     | 0.0840  | 1369424  | 3.73   | 0   | 1904 |
-| 32   | Mt    | 366924    | 27902     | 0.0760  | 1291105  | 3.52   | 0   | 1928 |
-| 64   | Mt    | 366924    | 20563     | 0.0560  | 1174510  | 3.20   | 0   | 1945 |
+| 0    | Mt    | 366924    | 363784    | 0.9914  | 58791874 | 160.23 | 0   | 1924 |
+| 0.25 | Mt    | 366924    | 363781    | 0.9914  | 58694616 | 159.96 | 0   | 1921 |
+| 0.5  | Mt    | 366924    | 363781    | 0.9914  | 58692222 | 159.96 | 0   | 1921 |
+| 1    | Mt    | 366924    | 363781    | 0.9914  | 58686680 | 159.94 | 0   | 1920 |
+| 2    | Mt    | 366924    | 363490    | 0.9906  | 58667344 | 159.89 | 0   | 1920 |
+| 4    | Mt    | 366924    | 358221    | 0.9763  | 55571688 | 151.45 | 0   | 1920 |
+| 8    | Mt    | 366924    | 97136     | 0.2647  | 7959947  | 21.69  | 0   | 1919 |
+| 16   | Mt    | 366924    | 30005     | 0.0818  | 1377573  | 3.75   | 0   | 1919 |
+| 32   | Mt    | 366924    | 27615     | 0.0753  | 1298721  | 3.54   | 0   | 1919 |
+| 64   | Mt    | 366924    | 21074     | 0.0574  | 1173507  | 3.20   | 0   | 1919 |
 
 
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean    | min | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:--------|:----|:-----|
-| 0    | Pt    | 154478    | 154478    | 1.0000  | 483357613 | 3128.97 | 4   | 4507 |
-| 0.25 | Pt    | 154478    | 154478    | 1.0000  | 482266768 | 3121.91 | 4   | 4504 |
-| 0.5  | Pt    | 154478    | 154478    | 1.0000  | 482118136 | 3120.95 | 4   | 4504 |
-| 1    | Pt    | 154478    | 154478    | 1.0000  | 482067384 | 3120.62 | 4   | 4504 |
-| 2    | Pt    | 154478    | 154478    | 1.0000  | 481988086 | 3120.11 | 4   | 4504 |
-| 4    | Pt    | 154478    | 154478    | 1.0000  | 481952699 | 3119.88 | 4   | 4504 |
-| 8    | Pt    | 154478    | 154478    | 1.0000  | 481915822 | 3119.64 | 4   | 4504 |
-| 16   | Pt    | 154478    | 154478    | 1.0000  | 481919945 | 3119.67 | 4   | 4504 |
-| 32   | Pt    | 154478    | 154478    | 1.0000  | 481755638 | 3118.60 | 2   | 4504 |
-| 64   | Pt    | 154478    | 150494    | 0.9742  | 352816898 | 2283.93 | 0   | 4498 |
+| 0    | Pt    | 154478    | 154478    | 1.0000  | 482866004 | 3125.79 | 4   | 4507 |
+| 0.25 | Pt    | 154478    | 154478    | 1.0000  | 481938779 | 3119.79 | 4   | 4504 |
+| 0.5  | Pt    | 154478    | 154478    | 1.0000  | 481866034 | 3119.32 | 4   | 4504 |
+| 1    | Pt    | 154478    | 154478    | 1.0000  | 481850340 | 3119.22 | 4   | 4504 |
+| 2    | Pt    | 154478    | 154478    | 1.0000  | 481833933 | 3119.11 | 4   | 4504 |
+| 4    | Pt    | 154478    | 154478    | 1.0000  | 481823604 | 3119.04 | 4   | 4504 |
+| 8    | Pt    | 154478    | 154478    | 1.0000  | 481815378 | 3118.99 | 4   | 4504 |
+| 16   | Pt    | 154478    | 154478    | 1.0000  | 481810317 | 3118.96 | 4   | 4504 |
+| 32   | Pt    | 154478    | 154478    | 1.0000  | 481645944 | 3117.89 | 2   | 4504 |
+| 64   | Pt    | 154478    | 150475    | 0.9741  | 352739147 | 2283.43 | 0   | 4498 |
 
 
 ## Remove intermediate files
@@ -438,6 +544,7 @@ cd ~/data/plastid/evaluation/col_0
 
 find . -type d -name "trim" | xargs rm -fr
 find . -type d -name "mapping" | xargs rm -fr
+# find . -type d -name "depth" | xargs rm -fr
 
 find . -type f -name "*.tadpole.contig.*" | xargs rm
 
