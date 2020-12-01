@@ -54,8 +54,8 @@ bc <<< "${BASES} / ${GENOME}"
 mkdir -p ~/data/plastid/evaluation/a17
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     mkdir -p ${BASE_NAME}/1_genome
     pushd ${BASE_NAME}/1_genome
@@ -80,31 +80,27 @@ done
 cd ~/data/plastid/evaluation/a17
 
 # 倍数因子::cutoff
-ARRAY=(
-    '0::0'
-    '0.25::5'
-    '0.5::11'
-    '1::23'
-    '2::46'
-    '4::92'
-    '8::184'
-    '16::368'
-    '32::736'
-    '64::1472'
-)
+ARRAY=()
+DEPTH=23
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    CUTOFF=$(bc <<< "(${DEPTH} * ${FOLD}) / 1")
+    ARRAY+=("${FOLD}::${CUTOFF}")
+done
+echo "${ARRAY[@]}"
+#0::0 0.25::5 0.5::11 1::23 2::46 4::92 8::184 16::368 32::736 64::1472
 
 for item in "${ARRAY[@]}" ; do
-    NAME="${item%%::*}"
+    FOLD="${item%%::*}"
     CUTOFF="${item##*::}"
 
     echo 1>&2 "==> ${item}"
     
-    BASE_NAME=SRR1542423_${NAME}
+    BASE_NAME=SRR1542423_${FOLD}
     pushd ${BASE_NAME}
     
     rm *.sh
         
-    if [[ "${NAME}" == "0" ]]; then
+    if [[ "${FOLD}" == "0" ]]; then
         anchr template \
             --genome 384862644 \
             --parallel 24 \
@@ -158,8 +154,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     mkdir -p ${BASE_NAME}/kat
     pushd ${BASE_NAME}/kat
@@ -191,42 +187,43 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     mkdir -p ${BASE_NAME}/mapping
     pushd ${BASE_NAME}/mapping
     
+    if [ -f R.sort.bai ]; then
+        echo >&2 '    R.sort.bai already presents'
+        popd;
+        continue;
+    fi
+
     bsub -q mpi -n 24 -J "${BASE_NAME}-mapping" '
+        # export JAVA_OPTS="-Xmx20G"
 
         # Pipe all reads together as we do not need mate info
         gzip -dcf \
             ../2_illumina/trim/Q25L60/R1.fq.gz \
             ../2_illumina/trim/Q25L60/R2.fq.gz \
             ../2_illumina/trim/Q25L60/Rs.fq.gz |
-            bwa mem -M -t 20 \
-                ../../../../genome/a17/genome.fa \
-                /dev/stdin |
-            pigz -p 4 \
-            > R.sam.gz
-        
-        picard CleanSam \
-            --INPUT R.sam.gz \
-            --OUTPUT R.clean.bam \
-            --VALIDATION_STRINGENCY LENIENT
-    
-        picard SortSam \
-            --INPUT R.clean.bam \
-            --OUTPUT R.sort.bam \
-            --SORT_ORDER coordinate \
-            --VALIDATION_STRINGENCY LENIENT
+            faops filter -l 0 stdin stdout | # ignore QUAL
+            bowtie2 -p 20 --very-fast -t \
+                -x ../../../../genome/a17/genome.fa \
+                -f -U /dev/stdin |
+            picard CleanSam \
+                --INPUT /dev/stdin \
+                --OUTPUT /dev/stdout \
+                --VALIDATION_STRINGENCY LENIENT --COMPRESSION_LEVEL 0 |
+            picard SortSam \
+                --INPUT /dev/stdin \
+                --OUTPUT R.sort.bam \
+                --SORT_ORDER coordinate \
+                --VALIDATION_STRINGENCY LENIENT --COMPRESSION_LEVEL 1
     
         picard BuildBamIndex \
             --INPUT R.sort.bam \
             --VALIDATION_STRINGENCY LENIENT
-            
-        find . -name "R.sam.gz" | xargs rm
-        find . -name "R.clean.bam" | xargs rm
     '
     
     popd
@@ -235,6 +232,106 @@ done
 
 ```
 
+* Stats of mapping
+
+```shell script
+cd ~/data/plastid/evaluation/a17
+
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
+    
+    echo "==> ${BASE_NAME}"
+
+    cat ${BASE_NAME}/mapping/output.* |
+        grep -Pzo '(?s)Multiseed full.+overall alignment rate'
+
+done
+
+```
+
+```text
+==> SRR1542423_0
+Multiseed full-index search: 00:08:30
+39795514 reads; of these:
+  39795514 (100.00%) were unpaired; of these:
+    4093232 (10.29%) aligned 0 times
+    16047972 (40.33%) aligned exactly 1 time
+    19654310 (49.39%) aligned >1 times
+89.71% overall alignment rate
+==> SRR1542423_0.25
+Multiseed full-index search: 00:08:08
+37826383 reads; of these:
+  37826383 (100.00%) were unpaired; of these:
+    3673779 (9.71%) aligned 0 times
+    14752532 (39.00%) aligned exactly 1 time
+    19400072 (51.29%) aligned >1 times
+90.29% overall alignment rate
+==> SRR1542423_0.5
+Multiseed full-index search: 00:06:50
+29669403 reads; of these:
+  29669403 (100.00%) were unpaired; of these:
+    3276378 (11.04%) aligned 0 times
+    7976711 (26.89%) aligned exactly 1 time
+    18416314 (62.07%) aligned >1 times
+88.96% overall alignment rate
+==> SRR1542423_1
+Multiseed full-index search: 00:05:27
+20991325 reads; of these:
+  20991325 (100.00%) were unpaired; of these:
+    2825125 (13.46%) aligned 0 times
+    1782829 (8.49%) aligned exactly 1 time
+    16383371 (78.05%) aligned >1 times
+86.54% overall alignment rate
+==> SRR1542423_2
+Multiseed full-index search: 00:04:53
+18816136 reads; of these:
+  18816136 (100.00%) were unpaired; of these:
+    2629155 (13.97%) aligned 0 times
+    1161418 (6.17%) aligned exactly 1 time
+    15025563 (79.85%) aligned >1 times
+86.03% overall alignment rate
+==> SRR1542423_4
+Multiseed full-index search: 00:04:36
+17602656 reads; of these:
+  17602656 (100.00%) were unpaired; of these:
+    2508267 (14.25%) aligned 0 times
+    1020641 (5.80%) aligned exactly 1 time
+    14073748 (79.95%) aligned >1 times
+85.75% overall alignment rate
+==> SRR1542423_8
+Multiseed full-index search: 00:04:21
+16448954 reads; of these:
+  16448954 (100.00%) were unpaired; of these:
+    2422824 (14.73%) aligned 0 times
+    848697 (5.16%) aligned exactly 1 time
+    13177433 (80.11%) aligned >1 times
+85.27% overall alignment rate
+==> SRR1542423_16
+Multiseed full-index search: 00:04:02
+15020170 reads; of these:
+  15020170 (100.00%) were unpaired; of these:
+    2361314 (15.72%) aligned 0 times
+    525547 (3.50%) aligned exactly 1 time
+    12133309 (80.78%) aligned >1 times
+84.28% overall alignment rate
+==> SRR1542423_32
+Multiseed full-index search: 00:03:41
+13814223 reads; of these:
+  13814223 (100.00%) were unpaired; of these:
+    2294616 (16.61%) aligned 0 times
+    408210 (2.95%) aligned exactly 1 time
+    11111397 (80.43%) aligned >1 times
+83.39% overall alignment rate
+==> SRR1542423_64
+Multiseed full-index search: 00:03:20
+12453870 reads; of these:
+  12453870 (100.00%) were unpaired; of these:
+    2214213 (17.78%) aligned 0 times
+    372792 (2.99%) aligned exactly 1 time
+    9866865 (79.23%) aligned >1 times
+82.22% overall alignment rate
+
+```
 
 ## Depth
 
@@ -243,13 +340,19 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth
+
+    if [ -f R.mosdepth.summary.txt ]; then
+        echo >&2 '    R.mosdepth.summary.txt already presents'
+        popd;
+        continue;
+    fi
 
     mosdepth R ../mapping/R.sort.bam
     
@@ -264,8 +367,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
@@ -276,11 +379,12 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
         perl -nla -F"\t" -e '
             $F[3] == 0 and next;
             $start = $F[1] + 1;
+            $end = $F[2];
             if ($start == $F[2]) {
                 print qq($F[0]:$start);
             }
             else {
-                print qq($F[0]:$start-$F[2]);
+                print qq($F[0]:$start-$end);
             }
         ' |
         spanr cover stdin -o covered.yml
@@ -304,8 +408,8 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
@@ -347,15 +451,15 @@ done
 ```shell script
 cd ~/data/plastid/evaluation/a17
 
-for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
-    BASE_NAME=SRR1542423_${NAME}
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR1542423_${FOLD}
     
     echo 1>&2 "==> ${BASE_NAME}"
     
     mkdir -p ${BASE_NAME}/depth
     pushd ${BASE_NAME}/depth > /dev/null
 
-    echo -e "Fold\tchrom\n${NAME}\tNc\n${NAME}\tMt\n${NAME}\tPt" |
+    echo -e "Fold\tchrom\n${FOLD}\tNc\n${FOLD}\tMt\n${FOLD}\tPt" |
         tsv-join -H --filter-file combine.tsv --key-fields chrom --append-fields 2-8
 
     popd > /dev/null
@@ -374,46 +478,47 @@ done
 
 ```
 
-| Fold | chrom | chrLength | covLength | covRate | bases      | mean  | min | max     |
-|:-----|:------|:----------|:----------|:--------|:-----------|:------|:----|:--------|
-| 0    | Nc    | 384466993 | 349624192 | 0.9094  | 4510879694 | 11.73 | 0   | 1407943 |
-| 0.25 | Nc    | 384466993 | 320317797 | 0.8331  | 4322435031 | 11.24 | 0   | 1406474 |
-| 0.5  | Nc    | 384466993 | 198580741 | 0.5165  | 3306410912 | 8.60  | 0   | 1406500 |
-| 1    | Nc    | 384466993 | 77234923  | 0.2009  | 2228530088 | 5.80  | 0   | 1405043 |
-| 2    | Nc    | 384466993 | 52136316  | 0.1356  | 1965633146 | 5.11  | 0   | 1404882 |
-| 4    | Nc    | 384466993 | 40294864  | 0.1048  | 1820778536 | 4.74  | 0   | 1402544 |
-| 8    | Nc    | 384466993 | 31554654  | 0.0821  | 1694721993 | 4.41  | 0   | 1397985 |
-| 16   | Nc    | 384466993 | 23746431  | 0.0618  | 1561019339 | 4.06  | 0   | 1393249 |
-| 32   | Nc    | 384466993 | 16716014  | 0.0435  | 1429771844 | 3.72  | 0   | 1385978 |
-| 64   | Nc    | 384466993 | 11597103  | 0.0302  | 1286133231 | 3.35  | 0   | 1376485 |
+| Fold | chrom | chrLength | covLength | covRate | bases      | mean  | min | max    |
+|:-----|:------|:----------|:----------|:--------|:-----------|:------|:----|:-------|
+| 0    | Nc    | 384466993 | 349437629 | 0.9089  | 4327426276 | 11.26 | 0   | 858687 |
+| 0.25 | Nc    | 384466993 | 319962957 | 0.8322  | 4143247285 | 10.78 | 0   | 858229 |
+| 0.5  | Nc    | 384466993 | 197843727 | 0.5146  | 3141188884 | 8.17  | 0   | 858023 |
+| 1    | Nc    | 384466993 | 76653164  | 0.1994  | 2086980331 | 5.43  | 0   | 857746 |
+| 2    | Nc    | 384466993 | 51894129  | 0.1350  | 1836298182 | 4.78  | 0   | 857145 |
+| 4    | Nc    | 384466993 | 40208484  | 0.1046  | 1698972847 | 4.42  | 0   | 856196 |
+| 8    | Nc    | 384466993 | 31558696  | 0.0821  | 1578702338 | 4.11  | 0   | 854628 |
+| 16   | Nc    | 384466993 | 23828317  | 0.0620  | 1449524262 | 3.77  | 0   | 852300 |
+| 32   | Nc    | 384466993 | 16793009  | 0.0437  | 1322816896 | 3.44  | 0   | 848676 |
+| 64   | Nc    | 384466993 | 11639440  | 0.0303  | 1184656229 | 3.08  | 0   | 843430 |
 
 
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
-| 0    | Mt    | 271618    | 271618    | 1.0000  | 69136307 | 254.54 | 1   | 1294 |
-| 0.25 | Mt    | 271618    | 271618    | 1.0000  | 67672293 | 249.15 | 1   | 1286 |
-| 0.5  | Mt    | 271618    | 271618    | 1.0000  | 67441873 | 248.30 | 1   | 1285 |
-| 1    | Mt    | 271618    | 271618    | 1.0000  | 67266172 | 247.65 | 1   | 1284 |
-| 2    | Mt    | 271618    | 271618    | 1.0000  | 67167647 | 247.29 | 1   | 1279 |
-| 4    | Mt    | 271618    | 271495    | 0.9995  | 66472305 | 244.73 | 0   | 1277 |
-| 8    | Mt    | 271618    | 254216    | 0.9359  | 53346996 | 196.40 | 0   | 1268 |
-| 16   | Mt    | 271618    | 97444     | 0.3588  | 13137668 | 48.37  | 0   | 1267 |
-| 32   | Mt    | 271618    | 25529     | 0.0940  | 973637   | 3.58   | 0   | 1059 |
-| 64   | Mt    | 271618    | 17850     | 0.0657  | 55453    | 0.20   | 0   | 239  |
+| 0    | Mt    | 271618    | 271618    | 1.0000  | 68924581 | 253.76 | 1   | 1294 |
+| 0.25 | Mt    | 271618    | 271618    | 1.0000  | 67529569 | 248.62 | 1   | 1285 |
+| 0.5  | Mt    | 271618    | 271618    | 1.0000  | 67342935 | 247.93 | 1   | 1285 |
+| 1    | Mt    | 271618    | 271618    | 1.0000  | 67186006 | 247.35 | 1   | 1283 |
+| 2    | Mt    | 271618    | 271618    | 1.0000  | 67111050 | 247.08 | 1   | 1279 |
+| 4    | Mt    | 271618    | 271495    | 0.9995  | 66427833 | 244.56 | 0   | 1277 |
+| 8    | Mt    | 271618    | 254074    | 0.9354  | 53310986 | 196.27 | 0   | 1268 |
+| 16   | Mt    | 271618    | 94380     | 0.3475  | 13137540 | 48.37  | 0   | 1266 |
+| 32   | Mt    | 271618    | 20746     | 0.0764  | 967564   | 3.56   | 0   | 1057 |
+| 64   | Mt    | 271618    | 13964     | 0.0514  | 51110    | 0.19   | 0   | 244  |
 
 
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
-| 0    | Pt    | 124033    | 124033    | 1.0000  | 89734517 | 723.47 | 1   | 4610 |
-| 0.25 | Pt    | 124033    | 124033    | 1.0000  | 89252242 | 719.58 | 1   | 4588 |
-| 0.5  | Pt    | 124033    | 124032    | 1.0000  | 88523820 | 713.71 | 0   | 4558 |
-| 1    | Pt    | 124033    | 124032    | 1.0000  | 88370854 | 712.48 | 0   | 4549 |
-| 2    | Pt    | 124033    | 124032    | 1.0000  | 88192394 | 711.04 | 0   | 4533 |
-| 4    | Pt    | 124033    | 124032    | 1.0000  | 88210157 | 711.18 | 0   | 4541 |
-| 8    | Pt    | 124033    | 123939    | 0.9992  | 88073301 | 710.08 | 0   | 4530 |
-| 16   | Pt    | 124033    | 123791    | 0.9980  | 87458644 | 705.12 | 0   | 4536 |
-| 32   | Pt    | 124033    | 117773    | 0.9495  | 83404438 | 672.44 | 0   | 4545 |
-| 64   | Pt    | 124033    | 83533     | 0.6735  | 61285085 | 494.10 | 0   | 4528 |
+| 0    | Pt    | 124033    | 124033    | 1.0000  | 89460546 | 721.26 | 1   | 4626 |
+| 0.25 | Pt    | 124033    | 124033    | 1.0000  | 89004547 | 717.59 | 1   | 4617 |
+| 0.5  | Pt    | 124033    | 124030    | 1.0000  | 88424794 | 712.91 | 0   | 4592 |
+| 1    | Pt    | 124033    | 124024    | 0.9999  | 88170772 | 710.87 | 0   | 4577 |
+| 2    | Pt    | 124033    | 124024    | 0.9999  | 88091785 | 710.23 | 0   | 4567 |
+| 4    | Pt    | 124033    | 124024    | 0.9999  | 88034561 | 709.77 | 0   | 4567 |
+| 8    | Pt    | 124033    | 124009    | 0.9998  | 87919456 | 708.84 | 0   | 4565 |
+| 16   | Pt    | 124033    | 123783    | 0.9980  | 87330660 | 704.09 | 0   | 4565 |
+| 32   | Pt    | 124033    | 117673    | 0.9487  | 83399317 | 672.40 | 0   | 4559 |
+| 64   | Pt    | 124033    | 82755     | 0.6672  | 61217216 | 493.56 | 0   | 4554 |
+
 
 ## Remove intermediate files
 
@@ -422,6 +527,7 @@ cd ~/data/plastid/evaluation/a17
 
 find . -type d -name "trim" | xargs rm -fr
 find . -type d -name "mapping" | xargs rm -fr
+# find . -type d -name "depth" | xargs rm -fr
 
 find . -type f -name "*.tadpole.contig.*" | xargs rm
 
