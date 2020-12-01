@@ -12,8 +12,8 @@ faops order Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz \
     <(for chr in {1,2,3,4,5,Mt,Pt}; do echo $chr; done) \
     genome.fa
 
-# bwa index
-bwa index genome.fa
+# bowtie2 index
+bowtie2-build --threads 24 genome.fa genome.fa
 
 # chr.sizes
 faops size genome.fa > chr.sizes
@@ -33,8 +33,8 @@ faops order Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz \
     <(for chr in $(seq 1 1 12) Mt Pt; do echo $chr; done) \
     genome.fa
 
-# bwa index
-bwa index genome.fa
+# bowtie2 index
+bowtie2-build --threads 24 genome.fa genome.fa
 
 # chr.sizes
 faops size genome.fa > chr.sizes
@@ -72,8 +72,8 @@ gzip -dcf GCF_000219495.3_MedtrA17_4.0_genomic.fna.gz NC_003119.fa NC_029641.fa 
     faops replace stdin replace.tsv stdout |
     faops order stdin <(for chr in $(seq 1 1 8) Mt Pt; do echo $chr; done) genome.fa
 
-# bwa index
-bwa index genome.fa
+# bowtie2 index
+bowtie2-build --threads 24 genome.fa genome.fa
 
 # chr.sizes
 faops size genome.fa > chr.sizes
@@ -118,8 +118,8 @@ gzip -dcf GCF_000004515.5_Glycine_max_v2.1_genomic.fna.gz |
     faops replace stdin replace.tsv stdout |
     faops order stdin <(for chr in $(seq 1 1 20) Mt Pt; do echo $chr; done) genome.fa
 
-# bwa index
-bwa index genome.fa
+# bowtie2 index
+bowtie2-build --threads 24 genome.fa genome.fa
 
 # chr.sizes
 faops size genome.fa > chr.sizes

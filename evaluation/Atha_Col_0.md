@@ -52,7 +52,7 @@ bc <<< "${BASES} / ${GENOME}"
 
 ```shell script
 # 将 reads 比对到参考序列上
-brew install bwa
+brew install bowtie2
 
 # 计算深度
 brew install mosdepth

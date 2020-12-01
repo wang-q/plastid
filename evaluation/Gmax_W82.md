@@ -202,35 +202,30 @@ for NAME in 0 0.25 0.5 1 2 4 8 16 32 64; do
     fi
 
     bsub -q mpi -n 24 -J "${BASE_NAME}-mapping" '
+        export JAVA_OPTS="-Xmx20G"
 
         # Pipe all reads together as we do not need mate info
         gzip -dcf \
             ../2_illumina/trim/Q25L60/R1.fq.gz \
             ../2_illumina/trim/Q25L60/R2.fq.gz \
             ../2_illumina/trim/Q25L60/Rs.fq.gz |
-            bwa mem -M -t 20 \
-                ../../../../genome/w82/genome.fa \
-                /dev/stdin |
-            pigz -p 4 \
-            > R.sam.gz
-        
-        picard CleanSam \
-            --INPUT R.sam.gz \
-            --OUTPUT R.clean.bam \
-            --VALIDATION_STRINGENCY LENIENT
-    
-        picard SortSam \
-            --INPUT R.clean.bam \
-            --OUTPUT R.sort.bam \
-            --SORT_ORDER coordinate \
-            --VALIDATION_STRINGENCY LENIENT
+            faops filter -l 0 stdin stdout | # ignore QUAL
+            bowtie2 -p 20 --very-fast -t \
+                -x ../../../../genome/w82/genome.fa \
+                -f -U /dev/stdin |
+            picard CleanSam \
+                --INPUT /dev/stdin \
+                --OUTPUT /dev/stdout \
+                --VALIDATION_STRINGENCY LENIENT --COMPRESSION_LEVEL 0 |
+            picard SortSam \
+                --INPUT /dev/stdin \
+                --OUTPUT R.sort.bam \
+                --SORT_ORDER coordinate \
+                --VALIDATION_STRINGENCY LENIENT --COMPRESSION_LEVEL 1
     
         picard BuildBamIndex \
             --INPUT R.sort.bam \
             --VALIDATION_STRINGENCY LENIENT
-            
-        find . -name "R.sam.gz" | xargs rm
-        find . -name "R.clean.bam" | xargs rm
     '
     
     popd
