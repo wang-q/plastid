@@ -11,6 +11,7 @@
     - [Illumina](#illumina)
   - [采用的倍数因子值](#采用的倍数因子值)
   - [Symlink](#symlink)
+  - [Run](#run)
 
 
 ## 基本信息
@@ -328,6 +329,134 @@ cat opts.tsv |
         ln -fs ../../ena/{2}_1.fastq.gz R1.fq.gz
         ln -fs ../../ena/{2}_2.fastq.gz R2.fq.gz
         popd
+    '
+
+```
+
+
+## Run
+
+* Rsync to hpcc
+
+```shell script
+rsync -avP \
+    ~/data/plastid/50/ \
+    wangq@202.119.37.251:data/plastid/50
+
+# rsync -avP wangq@202.119.37.251:data/plastid/50/ ~/data/plastid/50
+
+```
+
+```shell script
+cd ~/data/plastid/50/
+
+cat opts.tsv | head -n 30 | tail -n 20 |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        cd {1}
+        
+        rm *.sh
+        anchr template \
+            --genome 1000000 \
+            --parallel 24 \
+            --xmx 80g \
+            \
+            --fastqc \
+            --insertsize \
+            --kat \
+            \
+            --trim "--dedupe --cutoff {3} --cutk 31" \
+            --qual "25" \
+            --len "60" \
+            --filter "adapter artifact" \
+            \
+            --quorum \
+            --merge \
+            --ecphase "1 2 3" \
+            \
+            --cov "40 80 120 160 240 320" \
+            --unitigger "superreads bcalm tadpole" \
+            --splitp 100 \
+            --statp 1 \
+            --readl 100 \
+            --uscale 50 \
+            --lscale 5 \
+            --redo \
+            \
+            --extend
+            
+        bsub -q mpi -n 24 -J "{1}" "
+            bash 0_master.sh
+        "
+    '
+
+```
+
+## Pack and clean
+
+```shell script
+cd ~/data/plastid/50/
+
+cat opts.tsv | head -n 10 |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+        cd {1}
+        
+        if [ -d 4_down_sampling ]; then
+            rm -fr 4_down_sampling
+            rm -fr 6_down_sampling
+        fi
+    '
+
+cat opts.tsv | head -n 10 | # tail -n 10 |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
+        if [ -f {1}.tar.gz ]; then
+            exit;
+        fi
+
+        if [ ! -f {1}/7_merge_anchors/anchor.merge.fasta ]; then
+            exit;
+        fi
+
+        if [ ! -d {1}/9_quast ]; then
+            exit;
+        fi
+
+        echo "==> Clean {1}"
+        bash {1}/0_cleanup.sh
+        
+        echo "==> Create {1}.tar.gz"
+
+        tar -czvf {1}.tar.gz \
+            {1}/2_illumina/fastqc \
+            {1}/2_illumina/insert_size \
+            {1}/2_illumina/kat \
+            {1}/2_illumina/trim/Q25L60/pe.cor.fa.gz \
+            {1}/2_illumina/trim/Q25L60/env.json \
+            {1}/7_merge_anchors/anchor.merge.fasta \
+            {1}/7_merge_anchors/others.non-contained.fasta \
+            {1}/8_megahit/anchor/anchor.fasta \
+            {1}/8_megahit/megahit.non-contained.fasta \
+            {1}/8_mr_megahit/anchor/anchor.fasta \
+            {1}/8_mr_megahit/megahit.non-contained.fasta \
+            {1}/8_spades/anchor/anchor.fasta \
+            {1}/8_spades/spades.non-contained.fasta \
+            {1}/8_mr_spades/anchor/anchor.fasta \
+            {1}/8_mr_spades/spades.non-contained.fasta \
+            {1}/8_platanus/anchor/anchor.fasta \
+            {1}/8_platanus/platanus.non-contained.fasta \
+            {1}/9_quast \
+            {1}/*.md
+            
+        echo
+    '
+
+cat opts.tsv | head -n 50 |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ -f {1}.tar.gz ]; then
+            if [ -d {1} ]; then
+                echo "==> Remove {1}/"
+                rm -fr {1}
+            fi
+        fi
     '
 
 ```
