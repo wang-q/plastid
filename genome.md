@@ -80,6 +80,38 @@ faops size genome.fa > chr.sizes
 
 ```
 
+## *Prunus persica* PLov2-2N (a double haploid genotype of the peach cv. Lovell)
+
+```shell script
+mkdir -p ~/data/plastid/genome/lovell
+cd ~/data/plastid/genome/lovell
+
+aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/346/465/GCF_000346465.2_Prunus_persica_NCBIv2/GCF_000346465.2_Prunus_persica_NCBIv2_genomic.fna.gz
+
+TAB=$'\t'
+cat <<EOF > replace.tsv
+NC_034009.1${TAB}G1
+NC_034010.1${TAB}G2
+NC_034011.1${TAB}G3
+NC_034012.1${TAB}G4
+NC_034013.1${TAB}G5
+NC_034014.1${TAB}G6
+NC_034015.1${TAB}G7
+NC_034016.1${TAB}G8
+NC_014697.1${TAB}Pt
+EOF
+
+gzip -dcf GCF*_genomic.fna.gz |
+    faops replace -s stdin replace.tsv genome.fa
+
+# bowtie2 index
+bowtie2-build --threads 20 genome.fa genome.fa
+
+# chr.sizes
+faops size genome.fa > chr.sizes
+
+```
+
 ## *Glycine max* Williams 82
 
 ```shell script
