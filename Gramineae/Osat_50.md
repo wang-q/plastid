@@ -12,11 +12,12 @@
   - [采用的倍数因子值](#采用的倍数因子值)
   - [Symlink](#symlink)
   - [Run](#run)
+  - [Pack and clean](#pack-and-clean)
 
 
 ## 基本信息
 
-* Genome: GCF_001433935.1, IRGSP-1.0, 374,422 Mb
+* Genome: GCF_001433935.1, IRGSP-1.0, 374.422 Mb
 * Chloroplast: [NC_001320](https://www.ncbi.nlm.nih.gov/nuccore/NC_001320), **Japonica**, 134525 bp
 * Chloroplast: [NC_008155](https://www.ncbi.nlm.nih.gov/nuccore/NC_008155), **Indica**, 134496 bp
 * Mitochondrion: [NC_011033](https://www.ncbi.nlm.nih.gov/nuccore/NC_011033), **Japonica**, 490520
@@ -350,7 +351,7 @@ rsync -avP \
 ```shell script
 cd ~/data/plastid/50/
 
-cat opts.tsv | head -n 30 | tail -n 20 |
+cat opts.tsv | head -n 50 | tail -n 10 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         cd {1}
         
@@ -396,7 +397,7 @@ cat opts.tsv | head -n 30 | tail -n 20 |
 ```shell script
 cd ~/data/plastid/50/
 
-cat opts.tsv | head -n 10 |
+cat opts.tsv | head -n 30 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         cd {1}
         
@@ -406,7 +407,7 @@ cat opts.tsv | head -n 10 |
         fi
     '
 
-cat opts.tsv | head -n 10 | # tail -n 10 |
+cat opts.tsv | head -n 40 | tail -n 10 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
         if [ -f {1}.tar.gz ]; then
             exit;
