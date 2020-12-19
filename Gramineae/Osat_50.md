@@ -353,6 +353,10 @@ cd ~/data/plastid/50/
 
 cat opts.tsv | head -n 50 | tail -n 10 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ -f {1}.tar.gz ]; then
+            exit;
+        fi
+
         cd {1}
         
         rm *.sh
