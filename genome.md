@@ -112,6 +112,44 @@ faops size genome.fa > chr.sizes
 
 ```
 
+## *Solanum lycopersicum* Cultivar: Heinz 1706
+
+```shell script
+mkdir -p ~/data/plastid/genome/h1706
+cd ~/data/plastid/genome/h1706
+
+aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/188/115/GCF_000188115.4_SL3.0/GCF_000188115.4_SL3.0_genomic.fna.gz
+
+TAB=$'\t'
+cat <<EOF > replace.tsv
+NC_015438.3${TAB}1
+NC_015439.3${TAB}2
+NC_015440.3${TAB}3
+NC_015441.3${TAB}4
+NC_015442.3${TAB}5
+NC_015443.3${TAB}6
+NC_015444.3${TAB}7
+NC_015445.3${TAB}8
+NC_015446.3${TAB}9
+NC_015447.3${TAB}10
+NC_015448.3${TAB}11
+NC_015449.3${TAB}12
+NC_035963.1${TAB}Mt
+NC_007898.3${TAB}Pt
+EOF
+
+gzip -dcf GCF*_genomic.fna.gz |
+    faops replace stdin replace.tsv stdout |
+    faops order stdin <(for chr in $(seq 1 1 12) Mt Pt; do echo $chr; done) genome.fa
+
+# bowtie2 index
+bowtie2-build --threads 20 genome.fa genome.fa
+
+# chr.sizes
+faops size genome.fa > chr.sizes
+
+```
+
 ## *Glycine max* Williams 82
 
 ```shell script
