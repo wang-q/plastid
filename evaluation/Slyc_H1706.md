@@ -249,6 +249,86 @@ done
 ```
 
 ```text
+==> SRR1572628_0
+Multiseed full-index search: 00:06:46
+39077164 reads; of these:
+  39077164 (100.00%) were unpaired; of these:
+    1525053 (3.90%) aligned 0 times
+    21316709 (54.55%) aligned exactly 1 time
+    16235402 (41.55%) aligned >1 times
+96.10% overall alignment rate
+==> SRR1572628_0.25
+Multiseed full-index search: 00:06:38
+39076276 reads; of these:
+  39076276 (100.00%) were unpaired; of these:
+    1524954 (3.90%) aligned 0 times
+    21316562 (54.55%) aligned exactly 1 time
+    16234760 (41.55%) aligned >1 times
+96.10% overall alignment rate
+==> SRR1572628_0.5
+Multiseed full-index search: 00:06:40
+38848839 reads; of these:
+  38848839 (100.00%) were unpaired; of these:
+    1481947 (3.81%) aligned 0 times
+    21152295 (54.45%) aligned exactly 1 time
+    16214597 (41.74%) aligned >1 times
+96.19% overall alignment rate
+==> SRR1572628_1
+Multiseed full-index search: 00:05:31
+30765650 reads; of these:
+  30765650 (100.00%) were unpaired; of these:
+    1376252 (4.47%) aligned 0 times
+    14282164 (46.42%) aligned exactly 1 time
+    15107234 (49.10%) aligned >1 times
+95.53% overall alignment rate
+==> SRR1572628_2
+Multiseed full-index search: 00:03:12
+15790006 reads; of these:
+  15790006 (100.00%) were unpaired; of these:
+    1161835 (7.36%) aligned 0 times
+    2761722 (17.49%) aligned exactly 1 time
+    11866449 (75.15%) aligned >1 times
+92.64% overall alignment rate
+==> SRR1572628_4
+Multiseed full-index search: 00:02:33
+12434140 reads; of these:
+  12434140 (100.00%) were unpaired; of these:
+    999765 (8.04%) aligned 0 times
+    1301411 (10.47%) aligned exactly 1 time
+    10132964 (81.49%) aligned >1 times
+91.96% overall alignment rate
+==> SRR1572628_8
+Multiseed full-index search: 00:02:20
+11022472 reads; of these:
+  11022472 (100.00%) were unpaired; of these:
+    826018 (7.49%) aligned 0 times
+    1023931 (9.29%) aligned exactly 1 time
+    9172523 (83.22%) aligned >1 times
+92.51% overall alignment rate
+==> SRR1572628_16
+Multiseed full-index search: 00:02:02
+9863824 reads; of these:
+  9863824 (100.00%) were unpaired; of these:
+    670451 (6.80%) aligned 0 times
+    852379 (8.64%) aligned exactly 1 time
+    8340994 (84.56%) aligned >1 times
+93.20% overall alignment rate
+==> SRR1572628_32
+Multiseed full-index search: 00:01:45
+8495816 reads; of these:
+  8495816 (100.00%) were unpaired; of these:
+    507027 (5.97%) aligned 0 times
+    672550 (7.92%) aligned exactly 1 time
+    7316239 (86.12%) aligned >1 times
+94.03% overall alignment rate
+==> SRR1572628_64
+Multiseed full-index search: 00:01:34
+7435598 reads; of these:
+  7435598 (100.00%) were unpaired; of these:
+    389120 (5.23%) aligned 0 times
+    570460 (7.67%) aligned exactly 1 time
+    6476018 (87.09%) aligned >1 times
+94.77% overall alignment rate
 
 ```
 
@@ -396,6 +476,47 @@ for PART in Nc Mt Pt; do
 done
 
 ```
+
+| Fold | chrom | chrLength | covLength | covRate | bases      | mean | min | max   |
+|:-----|:------|:----------|:----------|:--------|:-----------|:-----|:----|:------|
+| 0    | Nc    | 807224664 | 690315363 | 0.8552  | 3481804917 | 4.31 | 0   | 75317 |
+| 0.25 | Nc    | 807224664 | 690314439 | 0.8552  | 3481735850 | 4.31 | 0   | 75305 |
+| 0.5  | Nc    | 807224664 | 681202580 | 0.8439  | 3464064210 | 4.29 | 0   | 75305 |
+| 1    | Nc    | 807224664 | 514441861 | 0.6373  | 2681096142 | 3.32 | 0   | 75305 |
+| 2    | Nc    | 807224664 | 205815919 | 0.2550  | 1230703754 | 1.52 | 0   | 75298 |
+| 4    | Nc    | 807224664 | 138500990 | 0.1716  | 917562580  | 1.14 | 0   | 75286 |
+| 8    | Nc    | 807224664 | 112994900 | 0.1400  | 796799014  | 0.99 | 0   | 75265 |
+| 16   | Nc    | 807224664 | 94282042  | 0.1168  | 703686906  | 0.87 | 0   | 75232 |
+| 32   | Nc    | 807224664 | 77461765  | 0.0960  | 613603053  | 0.76 | 0   | 75173 |
+| 64   | Nc    | 807224664 | 63406970  | 0.0785  | 534451456  | 0.66 | 0   | 74928 |
+
+
+| Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
+|:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
+| 0    | Mt    | 446257    | 446257    | 1.0000  | 44833383 | 100.47 | 1   | 1076 |
+| 0.25 | Mt    | 446257    | 446257    | 1.0000  | 44833295 | 100.47 | 1   | 1076 |
+| 0.5  | Mt    | 446257    | 446257    | 1.0000  | 44818599 | 100.43 | 1   | 1076 |
+| 1    | Mt    | 446257    | 446257    | 1.0000  | 44806115 | 100.40 | 1   | 1076 |
+| 2    | Mt    | 446257    | 446257    | 1.0000  | 44794921 | 100.38 | 1   | 1076 |
+| 4    | Mt    | 446257    | 446257    | 1.0000  | 44793552 | 100.38 | 1   | 1076 |
+| 8    | Mt    | 446257    | 446257    | 1.0000  | 44777908 | 100.34 | 1   | 1076 |
+| 16   | Mt    | 446257    | 437039    | 0.9793  | 40369362 | 90.46  | 0   | 1076 |
+| 32   | Mt    | 446257    | 210209    | 0.4710  | 13698654 | 30.70  | 0   | 1076 |
+| 64   | Mt    | 446257    | 31785     | 0.0712  | 2024847  | 4.54   | 0   | 1076 |
+
+
+| Fold | chrom | chrLength | covLength | covRate | bases     | mean   | min | max  |
+|:-----|:------|:----------|:----------|:--------|:----------|:-------|:----|:-----|
+| 0    | Pt    | 155461    | 155461    | 1.0000  | 139601678 | 897.99 | 6   | 2546 |
+| 0.25 | Pt    | 155461    | 155461    | 1.0000  | 139597788 | 897.96 | 6   | 2546 |
+| 0.5  | Pt    | 155461    | 155461    | 1.0000  | 139582061 | 897.86 | 6   | 2546 |
+| 1    | Pt    | 155461    | 155461    | 1.0000  | 139516109 | 897.43 | 6   | 2544 |
+| 2    | Pt    | 155461    | 155461    | 1.0000  | 139460102 | 897.07 | 6   | 2543 |
+| 4    | Pt    | 155461    | 155461    | 1.0000  | 139446273 | 896.99 | 6   | 2543 |
+| 8    | Pt    | 155461    | 155461    | 1.0000  | 139443737 | 896.97 | 6   | 2543 |
+| 16   | Pt    | 155461    | 155461    | 1.0000  | 139442218 | 896.96 | 6   | 2543 |
+| 32   | Pt    | 155461    | 155461    | 1.0000  | 139438208 | 896.93 | 6   | 2543 |
+| 64   | Pt    | 155461    | 155461    | 1.0000  | 138990512 | 894.05 | 6   | 2543 |
 
 
 ## Remove intermediate files
