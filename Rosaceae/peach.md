@@ -220,6 +220,13 @@ cat ena/ena_info.csv |
 
 cat opts.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ ! -f ena/{2}_1.fastq.gz ]; then
+            exit;
+        fi
+        if [ ! -f ena/{2}_2.fastq.gz ]; then
+            exit;
+        fi
+    
         mkdir -p {1}/1_genome
         pushd {1}/1_genome
     
@@ -253,9 +260,13 @@ rsync -avP \
 ```shell script
 cd ~/data/plastid/peach/
 
-cat opts.tsv | head -n 30 | tail -n 5 |
+cat opts.tsv | # head -n 30 | tail -n 5 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
+            exit;
+        fi
+        
+        if [ ! -d {1} ]; then
             exit;
         fi
 
@@ -305,6 +316,10 @@ cd ~/data/plastid/peach/
 
 cat opts.tsv | head -n 30 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+        if [ ! -d {1} ]; then
+            exit;
+        fi
+
         cd {1}
         
         if [ -d 4_down_sampling ]; then
@@ -313,7 +328,7 @@ cat opts.tsv | head -n 30 |
         fi
     '
 
-cat opts.tsv | head -n 15 | tail -n 5 |
+cat opts.tsv | #head -n 15 | tail -n 5 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
         if [ -f {1}.tar.gz ]; then
             exit;
