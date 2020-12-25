@@ -1,8 +1,8 @@
-# *Oryza sativa* 50 accessions
+# 🌾 *Oryza sativa* 50 accessions
 
 [TOC levels=1-3]: # ""
 
-- [*Oryza sativa* 50 accessions](#oryza-sativa-50-accessions)
+- [🌾 *Oryza sativa* 50 accessions](#-oryza-sativa-50-accessions)
   - [基本信息](#基本信息)
   - [项目信息](#项目信息)
   - [其他可能可用的项目](#其他可能可用的项目)
@@ -49,6 +49,15 @@ III 和 IV 是在孟加拉国和东北亚地区发现, 是一种叫做深水稻 
 
 + [3000水稻基因组计划 PRJEB6180](https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=PRJEB6180)
 + [《The 3,000 rice genomes project》](https://gigascience.biomedcentral.com/articles/10.1186/2047-217X-3-7)
+
+
+PRJNA554986 GWAS and domesticated selection
+
+PRJNA522896 Resequencing data of 147 rice varieties
+
+PRJNA522923 Resequencing data of 120 rice RILs
+
+查询 IRGC 编号: https://gringlobal.irri.org/gringlobal/search.aspx
 
 
 ## 数据下载
