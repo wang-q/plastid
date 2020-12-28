@@ -303,6 +303,19 @@ md5sum --check ena_info.md5.txt
 
 ## Symlink
 
+* 采用的倍数因子值: `2`
+
+* Rsync to hpcc
+
+```shell script
+rsync -avP \
+    ~/data/plastid/50/ \
+    wangq@202.119.37.251:data/plastid/50
+
+# rsync -avP wangq@202.119.37.251:data/plastid/50/ ~/data/plastid/50
+
+```
+
 ```shell script
 cd ~/data/plastid/50/
 
@@ -327,10 +340,21 @@ cat ena/ena_info.csv |
 
 cat opts.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ ! -f ena/{2}_1.fastq.gz ]; then
+            exit;
+        fi
+        if [ ! -f ena/{2}_2.fastq.gz ]; then
+            exit;
+        fi
+
+        if [ -f {1}.tar.gz ]; then
+            exit;
+        fi
+    
         mkdir -p {1}/1_genome
         pushd {1}/1_genome
     
-        ln -fs ../../genome/genome.fa genome.fa
+        cp ../../genome/genome.fa genome.fa
         popd
         
         mkdir -p {1}/2_illumina
@@ -343,19 +367,7 @@ cat opts.tsv |
 
 ```
 
-
 ## Run
-
-* Rsync to hpcc
-
-```shell script
-rsync -avP \
-    ~/data/plastid/50/ \
-    wangq@202.119.37.251:data/plastid/50
-
-# rsync -avP wangq@202.119.37.251:data/plastid/50/ ~/data/plastid/50
-
-```
 
 ```shell script
 cd ~/data/plastid/50/
@@ -365,8 +377,19 @@ cat opts.tsv | head -n 50 | tail -n 10 |
         if [ -f {1}.tar.gz ]; then
             exit;
         fi
+        
+        if [ ! -d {1} ]; then
+            exit;
+        fi
+        
+        if bjobs -w | tr -s " " | cut -d " " -f 7 | grep -w "^{1}$"; then
+            echo Job {1} exists
+            exit;
+        fi
 
         cd {1}
+        
+        echo {1}
         
         rm *.sh
         anchr template \
@@ -387,6 +410,8 @@ cat opts.tsv | head -n 50 | tail -n 10 |
             --merge \
             --ecphase "1 2 3" \
             \
+            --bowtie "Q25L60" \
+            \
             --cov "40 80 120 160 240 320" \
             --unitigger "superreads bcalm tadpole" \
             --splitp 100 \
@@ -397,9 +422,11 @@ cat opts.tsv | head -n 50 | tail -n 10 |
             --redo \
             \
             --extend
-            
+
         bsub -q mpi -n 24 -J "{1}" "
             bash 0_master.sh
+            rm -fr 4_down_sampling
+            rm -fr 6_down_sampling
         "
     '
 
@@ -410,27 +437,20 @@ cat opts.tsv | head -n 50 | tail -n 10 |
 ```shell script
 cd ~/data/plastid/50/
 
-cat opts.tsv | head -n 30 |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
-        cd {1}
-        
-        if [ -d 4_down_sampling ]; then
-            rm -fr 4_down_sampling
-            rm -fr 6_down_sampling
-        fi
-    '
-
-cat opts.tsv | head -n 40 | tail -n 10 |
+cat opts.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
         if [ -f {1}.tar.gz ]; then
+            echo "==> {1} .tar.gz"
             exit;
         fi
 
         if [ ! -f {1}/7_merge_anchors/anchor.merge.fasta ]; then
+            echo "==> {1} 7_merge_anchors"
             exit;
         fi
 
         if [ ! -d {1}/9_quast ]; then
+            echo "==> {1} 9_quast"
             exit;
         fi
 
@@ -440,11 +460,13 @@ cat opts.tsv | head -n 40 | tail -n 10 |
         echo "==> Create {1}.tar.gz"
 
         tar -czvf {1}.tar.gz \
+            {1}/1_genome/genome.fa \
             {1}/2_illumina/fastqc \
             {1}/2_illumina/insert_size \
             {1}/2_illumina/kat \
             {1}/2_illumina/trim/Q25L60/pe.cor.fa.gz \
             {1}/2_illumina/trim/Q25L60/env.json \
+            {1}/3_bowtie \
             {1}/7_merge_anchors/anchor.merge.fasta \
             {1}/7_merge_anchors/others.non-contained.fasta \
             {1}/8_megahit/anchor/anchor.fasta \
@@ -463,7 +485,7 @@ cat opts.tsv | head -n 40 | tail -n 10 |
         echo
     '
 
-cat opts.tsv | head -n 50 |
+cat opts.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
             if [ -d {1} ]; then
@@ -475,3 +497,25 @@ cat opts.tsv | head -n 50 |
 
 ```
 
+* Unpack
+
+```shell script
+cd ~/data/plastid/50/
+
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
+        if [ -d {1} ]; then
+            echo "==> {1} exists"
+            exit;
+        fi
+
+        if [ ! -f {1}.tar.gz ]; then
+            echo "==> {1}.tar.gz not exists"
+            exit;
+        fi
+
+        tar -xzvf {1}.tar.gz
+        rm {1}.tar.gz
+    '
+
+```
