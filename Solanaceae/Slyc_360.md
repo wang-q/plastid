@@ -1,14 +1,18 @@
-# *Solanum lycopersicum* 360 accessions
+# 🍅 *Solanum lycopersicum* 360 accessions
 
 [TOC levels=1-3]: # ""
 
-- [*Solanum lycopersicum* 360 accessions](#solanum-lycopersicum-360-accessions)
+- [🍅 *Solanum lycopersicum* 360 accessions](#-solanum-lycopersicum-360-accessions)
   - [基本信息](#基本信息)
   - [项目信息](#项目信息)
   - [其他可能可用的项目](#其他可能可用的项目)
   - [数据下载](#数据下载)
     - [Reference](#reference)
     - [Illumina](#illumina)
+  - [采用的倍数因子值](#采用的倍数因子值)
+  - [Symlink](#symlink)
+  - [Run](#run)
+  - [Pack and clean](#pack-and-clean)
 
 
 ## 基本信息
@@ -262,10 +266,6 @@ md5sum --check ena_info.md5.txt
 | TS-97  | SRX698498 | ILLUMINA | PAIRED |         | SRR1572356 | 31539812 | 5.87G |
 | TS-98  | SRX698500 | ILLUMINA | PAIRED |         | SRR1572358 | 31695055 | 5.9G  |
 
-
-## 采用的倍数因子值
-
-* `2`
 
 ## Symlink
 

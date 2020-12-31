@@ -395,7 +395,7 @@ cat opts.tsv |
 ```shell script
 cd ~/data/plastid/384/
 
-cat opts.tsv | head -n 100 |
+cat opts.tsv | #head -n 140 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
             exit;

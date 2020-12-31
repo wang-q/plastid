@@ -9,7 +9,6 @@
   - [数据下载](#数据下载)
     - [Reference](#reference)
     - [Illumina](#illumina)
-  - [采用的倍数因子值](#采用的倍数因子值)
   - [Symlink](#symlink)
   - [Run](#run)
   - [Pack and clean](#pack-and-clean)
@@ -19,7 +18,6 @@
 
 * Genome: GCF_001433935.1, IRGSP-1.0, 374.422 Mb
 * Chloroplast: [NC_001320](https://www.ncbi.nlm.nih.gov/nuccore/NC_001320), **Japonica**, 134525 bp
-* Chloroplast: [NC_008155](https://www.ncbi.nlm.nih.gov/nuccore/NC_008155), **Indica**, 134496 bp
 * Mitochondrion: [NC_011033](https://www.ncbi.nlm.nih.gov/nuccore/NC_011033), **Japonica**, 490520
   bp
 
@@ -41,7 +39,7 @@
 | IV       | IV           | deepwater rices    | 深水水稻 |
 
 III 和 IV 是在孟加拉国和东北亚地区发现, 是一种叫做深水稻 (deepwater rices) 的类型. 目前大部分的栽培深水稻是 Indica
-类型, 但是也有发现 Japonica 类型 (参考wiki-Deepwater rice). III 只在孟加拉国和印度曼尼普尔邦发现.
+类型, 但是也有发现 Japonica 类型 (参考 wiki-Deepwater rice). III 只在孟加拉国和印度曼尼普尔邦发现.
 它由特殊的水稻组成, 周期短, 光周期不敏感, 适应深水条件. IV 相当于孟加拉国的 Rayada rices. 这些是非常特殊的水稻, 在 11
 月到 12 月播种, 12 个月后收获, 早期耐寒, 对光周期敏感, 能经受 12 天的洪水, 并能将其伸长调整到 6 米深.
 
@@ -59,6 +57,7 @@ PRJNA522923 Resequencing data of 120 rice RILs
 
 查询 IRGC 编号: https://gringlobal.irri.org/gringlobal/search.aspx
 
+查询种质资源信息: https://www.genesys-pgr.org/
 
 ## 数据下载
 
@@ -297,10 +296,6 @@ md5sum --check ena_info.md5.txt
 | Yuan3-9    | SRX025246 | ILLUMINA | PAIRED | 230     | SRR063624 | 23867062 | 4.45G |
 
 
-## 采用的倍数因子值
-
-* `2`
-
 ## Symlink
 
 * 采用的倍数因子值: `2`
@@ -519,3 +514,4 @@ cat opts.tsv |
     '
 
 ```
+
