@@ -15,6 +15,9 @@ faops order Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz \
 # bowtie2 index
 bowtie2-build --threads 20 genome.fa genome.fa
 
+# bwa index
+bwa index genome.fa
+
 # chr.sizes
 faops size genome.fa > chr.sizes
 
