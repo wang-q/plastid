@@ -56,16 +56,16 @@ cd ~/data/plastid/evaluation/ler_0
 
 for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
     BASE_NAME=SRR616965_${FOLD}
-    
+
     mkdir -p ${BASE_NAME}/1_genome
     pushd ${BASE_NAME}/1_genome
-    
+
     ln -fs ../../../../genome/col_0/genome.fa genome.fa
     popd
-    
+
     mkdir -p ${BASE_NAME}/2_illumina
     pushd ${BASE_NAME}/2_illumina
-    
+
     ln -fs ../../../../ena/SRR616965_1.fastq.gz R1.fq.gz
     ln -fs ../../../../ena/SRR616965_2.fastq.gz R2.fq.gz
     popd
@@ -94,12 +94,12 @@ for item in "${ARRAY[@]}" ; do
     CUTOFF="${item##*::}"
 
     echo 1>&2 "==> ${item}"
-    
+
     BASE_NAME=SRR616965_${FOLD}
     pushd ${BASE_NAME}
-    
+
     rm *.sh
-        
+
     if [[ "${FOLD}" == "0" ]]; then
         anchr template \
             --genome 119667750 \
@@ -124,16 +124,12 @@ for item in "${ARRAY[@]}" ; do
             bash 2_trim.sh
             bash 9_stat_reads.sh
             bash 3_bwa.sh
-        "        
+        "
     else
         anchr template \
             --genome 119667750 \
             --parallel 24 \
             --xmx 80g \
-            \
-            --fastqc \
-            --insertsize \
-            --kat \
             \
             --trim "--dedupe --cutoff ${CUTOFF} --cutk 31" \
             --qual "25" \
@@ -162,10 +158,10 @@ cd ~/data/plastid/evaluation/ler_0
 
 for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
     BASE_NAME=SRR616965_${FOLD}
-    
+
     mkdir -p ${BASE_NAME}/kat
     pushd ${BASE_NAME}/kat
-    
+
     bsub -q mpi -n 24 -J "${BASE_NAME}-kat" "
         kat hist \
             -t 24 -m 31 \
@@ -181,7 +177,7 @@ for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
             ../2_illumina/trim/Q25L60/Rs.fq.gz \
             -o R-gcp-31
     "
-    
+
     popd
 
 done
@@ -195,9 +191,9 @@ cd ~/data/plastid/evaluation/ler_0
 
 for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
     BASE_NAME=SRR616965_${FOLD}
-    
+
     echo 1>&2 "==> ${BASE_NAME}"
-    
+
     pushd ${BASE_NAME}/3_bwa
 
     cat join.tsv |
@@ -212,8 +208,8 @@ for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
             my $covRate = sprintf qq(%.4f), $covLength / $chrLength;
             my $mean = sprintf qq(%.2f), $bases / $chrLength;
             print join qq(\t), (
-                "Nc", $chrLength, $covLength, $covRate, $bases, $mean, $min, $max, 
-            ); 
+                "Nc", $chrLength, $covLength, $covRate, $bases, $mean, $min, $max,
+            );
             print qq(\n);
         ' |
         (cat join.tsv | sed '2,6d' && cat) \
@@ -232,9 +228,9 @@ cd ~/data/plastid/evaluation/ler_0
 
 for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
     BASE_NAME=SRR616965_${FOLD}
-    
+
     echo 1>&2 "==> ${BASE_NAME}"
-    
+
     pushd ${BASE_NAME}/3_bwa > /dev/null
 
     echo -e "Fold\tchrom\n${FOLD}\tNc\n${FOLD}\tMt\n${FOLD}\tPt" |
@@ -304,6 +300,9 @@ done
 cd ~/data/plastid/evaluation/ler_0
 
 find . -type d -name "trim" | xargs rm -fr
+find . -type f -path "*3_bwa/genome.fa*" | xargs rm
+find . -type f -name "*.ba[mi]" | xargs rm
+find . -type f -name "*.per-base.bed.gz" | xargs rm
 
 find . -type f -name "*.tadpole.contig.*" | xargs rm
 
