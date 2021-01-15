@@ -47,8 +47,8 @@ PRJNA170333
 ### Reference
 
 ```shell script
-mkdir -p ~/data/plastid/384/genome
-cd ~/data/plastid/384/genome
+mkdir -p ~/data/plastid/Mtru_384/genome
+cd ~/data/plastid/Mtru_384/genome
 
 for ACCESSION in "NC_003119" "NC_029641"; do
     URL=$(printf "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&rettype=%s&id=%s&retmode=text" "fasta" "${ACCESSION}");
@@ -85,8 +85,8 @@ faops size genome.fa > chr.sizes
   * Convert xls to csv via `excel`
 
 ```shell script
-mkdir -p ~/data/plastid/384/ena
-cd ~/data/plastid/384/ena
+mkdir -p ~/data/plastid/Mtru_384/ena
+cd ~/data/plastid/Mtru_384/ena
 
 cat SraRunTable.txt |
     mlr --icsv --otsv cat \
@@ -162,7 +162,7 @@ md5sum --check ena_info.md5.txt
 | HM010 | L000154 | SA24714              | Italy             | CC16     | INRA-Montpellier | Processed |
 
 
-| name  | srx       | platform | layout | ilength | srr        | spot     | base  |
+| name  | srx       | platform | layout | ilength | srr        | spot     | bases |
 |:------|:----------|:---------|:-------|:--------|:-----------|:---------|:------|
 | HM001 | SRX375894 | ILLUMINA | PAIRED | 257     | SRR1034054 | 18738482 | 3.14G |
 | HM002 | SRX375896 | ILLUMINA | PAIRED | 219     | SRR1034056 | 20086982 | 3.37G |
@@ -322,7 +322,7 @@ md5sum --check ena_info.md5.txt
 | HM247 | SRX376160 | ILLUMINA | PAIRED | 257     | SRR1034320 | 14603330 | 2.45G |
 
 * Failed to assemble
-    * HM016 - Bad quality of reads
+  * HM016 -
 
 ## Symlink
 
@@ -332,15 +332,15 @@ md5sum --check ena_info.md5.txt
 
 ```shell script
 rsync -avP \
-    ~/data/plastid/384/ \
-    wangq@202.119.37.251:data/plastid/384
+    ~/data/plastid/Mtru_384/ \
+    wangq@202.119.37.251:data/plastid/Mtru_384
 
-# rsync -avP wangq@202.119.37.251:data/plastid/384/ ~/data/plastid/384
+# rsync -avP wangq@202.119.37.251:data/plastid/Mtru_384/ ~/data/plastid/Mtru_384
 
 ```
 
 ```shell script
-cd ~/data/plastid/384/
+cd ~/data/plastid/Mtru_384/
 
 export FOLD=2
 export GENOME_SIZE=$(
@@ -350,7 +350,9 @@ export GENOME_SIZE=$(
 
 cat ena/ena_info.csv |
     mlr --icsv --otsv cat |
-    tsv-select -H -f name,srr,base |
+    tsv-select -H -f name,srr,bases |
+    grep -v -w 'HM016' | # Bad quality of reads
+    grep -v -w 'HM207' |
     perl -nla -F'\t' -e '
         /^name/ and next;
         my $bases = $F[2];
@@ -373,16 +375,16 @@ cat opts.tsv |
         if [ -f {1}.tar.gz ]; then
             exit;
         fi
-    
+
         mkdir -p {1}/1_genome
         pushd {1}/1_genome
-    
+
         cp ../../genome/genome.fa genome.fa
         popd
-        
+
         mkdir -p {1}/2_illumina
         pushd {1}/2_illumina
-        
+
         ln -fs ../../ena/{2}_1.fastq.gz R1.fq.gz
         ln -fs ../../ena/{2}_2.fastq.gz R2.fq.gz
         popd
@@ -393,27 +395,34 @@ cat opts.tsv |
 ## Run
 
 ```shell script
-cd ~/data/plastid/384/
+cd ~/data/plastid/Mtru_384/
 
-cat opts.tsv | #head -n 140 |
+cat opts.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
             exit;
         fi
-        
+
         if [ ! -d {1} ]; then
             exit;
         fi
-        
+
+        if [ ! -e {1}/2_illumina/R1.fq.gz ]; then
+            exit;
+        fi
+        if [ ! -e {1}/2_illumina/R2.fq.gz ]; then
+            exit;
+        fi
+
         if bjobs -w | tr -s " " | cut -d " " -f 7 | grep -w "^{1}$"; then
             echo Job {1} exists
             exit;
         fi
 
         cd {1}
-        
+
         echo {1}
-        
+
         rm *.sh
         anchr template \
             --genome 1000000 \
@@ -429,27 +438,17 @@ cat opts.tsv | #head -n 140 |
             --len "60" \
             --filter "adapter artifact" \
             \
-            --quorum \
-            --merge \
-            --ecphase "1 2 3" \
-            \
-            --bowtie "Q25L60" \
-            \
-            --cov "40 80 120 160 240 320" \
-            --unitigger "superreads bcalm tadpole" \
-            --splitp 100 \
-            --statp 1 \
-            --readl 100 \
-            --uscale 50 \
-            --lscale 5 \
-            --redo \
-            \
-            --extend
+            --bwa Q25L60 \
+            --gatk
 
         bsub -q mpi -n 24 -J "{1}" "
-            bash 0_master.sh
-            rm -fr 4_down_sampling
-            rm -fr 6_down_sampling
+            bash 2_fastqc.sh
+            bash 2_insert_size.sh
+            bash 2_kat.sh
+            bash 2_trim.sh
+            bash 9_stat_reads.sh
+            bash 3_bwa.sh
+            bash 3_gatk.sh
         "
     '
 
@@ -458,28 +457,33 @@ cat opts.tsv | #head -n 140 |
 ## Pack and clean
 
 ```shell script
-cd ~/data/plastid/384/
+cd ~/data/plastid/Mtru_384/
 
 cat opts.tsv |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
             echo "==> {1} .tar.gz"
             exit;
         fi
 
-        if [ ! -f {1}/7_merge_anchors/anchor.merge.fasta ]; then
-            echo "==> {1} 7_merge_anchors"
+        if [ ! -f {1}/3_gatk/R.filtered.vcf ]; then
+            echo "==> {1} 3_gatk"
             exit;
         fi
 
-        if [ ! -d {1}/9_quast ]; then
-            echo "==> {1} 9_quast"
-            exit;
-        fi
+#        if [ ! -f {1}/7_merge_anchors/anchor.merge.fasta ]; then
+#            echo "==> {1} 7_merge_anchors"
+#            exit;
+#        fi
+#
+#        if [ ! -d {1}/9_quast ]; then
+#            echo "==> {1} 9_quast"
+#            exit;
+#        fi
 
         echo "==> Clean {1}"
         bash {1}/0_cleanup.sh
-        
+
         echo "==> Create {1}.tar.gz"
 
         tar -czvf {1}.tar.gz \
@@ -487,9 +491,12 @@ cat opts.tsv |
             {1}/2_illumina/fastqc \
             {1}/2_illumina/insert_size \
             {1}/2_illumina/kat \
-            {1}/2_illumina/trim/Q25L60/pe.cor.fa.gz \
-            {1}/2_illumina/trim/Q25L60/env.json \
-            {1}/3_bowtie \
+            {1}/3_bwa/join.tsv \
+            {1}/3_bwa/R.dedup.metrics \
+            {1}/3_bwa/R.wgs.metrics \
+            {1}/3_bwa/R.sort.bam \
+            {1}/3_bwa/R.sort.bai \
+            {1}/3_gatk \
             {1}/7_merge_anchors/anchor.merge.fasta \
             {1}/7_merge_anchors/others.non-contained.fasta \
             {1}/8_megahit/anchor/anchor.fasta \
@@ -504,7 +511,7 @@ cat opts.tsv |
             {1}/8_platanus/platanus.non-contained.fasta \
             {1}/9_quast \
             {1}/*.md
-            
+
         echo
     '
 
@@ -520,13 +527,30 @@ cat opts.tsv |
 
 ```
 
+* Remove processed files
+
+```shell script
+cd ~/data/plastid/Mtru_384/
+
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ ! -f {1}.tar.gz ]; then
+            exit;
+        fi
+
+        find ena -type f -name "*{2}*"
+    ' |
+    xargs rm
+
+```
+
 * Unpack
 
 ```shell script
-cd ~/data/plastid/384/
+cd ~/data/plastid/Mtru_384/
 
-cat opts.tsv | head -n 60 |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '        
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -d {1} ]; then
             echo "==> {1} exists"
             exit;
@@ -542,3 +566,4 @@ cat opts.tsv | head -n 60 |
     '
 
 ```
+
