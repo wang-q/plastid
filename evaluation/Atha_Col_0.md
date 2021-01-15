@@ -48,6 +48,19 @@ bc <<< "${BASES} / ${GENOME}"
 
 ```
 
+* `mdtable2csv`
+
+```shell script
+mkdir -p ${HOME}/bin
+curl -fsSL $(
+    curl -fsSL https://api.github.com/repos/515hikaru/mdtable2csv/releases/latest |
+        jq -r '.assets[] | select(.name == "mdtable2csv_linux_x86_64.tar.gz").browser_download_url'
+    ) |
+    tar xvz mdtable2csv
+mv mdtable2csv ${HOME}/bin
+
+```
+
 ## Symlink
 
 ```shell script
@@ -293,6 +306,44 @@ done
 | 32   | Pt    | 154478    | 154478    | 1.0000  | 389713923 | 2522.78 | 2   | 3442 |
 | 64   | Pt    | 154478    | 148548    | 0.9616  | 258962605 | 1676.37 | 0   | 3437 |
 
+
+```shell script
+cd ~/data/plastid/evaluation/col_0
+
+for FOLD in 0 0.25 0.5 1 2 4 8 16 32 64; do
+    BASE_NAME=SRR616966_${FOLD}
+
+    echo 1>&2 "==> ${BASE_NAME}"
+
+    cat ${BASE_NAME}/statReads.md |
+        mdtable2csv |
+        mlr --icsv --otsv cat |
+        grep -v "^Name" |
+        grep -v "^Genome" |
+        tsv-select -f 1,3 |
+        (echo -e "Fold\t${FOLD}" && cat) |
+        datamash transpose
+done |
+    tsv-uniq \
+    > SRR616966_reads.tsv
+
+cat SRR616966_reads.tsv |
+    mlr --itsv --omd cat
+
+```
+
+| Fold | Illumina.R | trim.R  | Q25L60  |
+|:-----|:-----------|:--------|:--------|
+| 0    | 4.97G      | 4.52G   | 4.17G   |
+| 0.25 | 4.97G      | 3.67G   | 3.41G   |
+| 0.5  | 4.97G      | 2.13G   | 1.99G   |
+| 1    | 4.97G      | 1.26G   | 1.17G   |
+| 2    | 4.97G      | 1.19G   | 1.1G    |
+| 4    | 4.97G      | 1.14G   | 1.06G   |
+| 8    | 4.97G      | 1.02G   | 945.53M |
+| 16   | 4.97G      | 981.34M | 912.91M |
+| 32   | 4.97G      | 957.19M | 890.32M |
+| 64   | 4.97G      | 761.94M | 710.47M |
 
 ## Remove intermediate files
 
