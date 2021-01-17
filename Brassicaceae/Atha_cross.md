@@ -11,6 +11,7 @@
   - [Symlink](#symlink)
   - [Run](#run)
   - [Pack and clean](#pack-and-clean)
+  - [VCF](#vcf)
 
 
 ## 基本信息
@@ -170,12 +171,15 @@ cat ena/ena_info.csv |
     mlr --icsv --otsv cat |
     tsv-select -H -f name,srr,bases |
     perl -nla -F'\t' -e '
+        BEGIN { our %seen }
         /^name/ and next;
+        $seen{$F[0]} and next;
         my $bases = $F[2];
         $bases =~ s/G$//;
         my $cutoff = $bases * 1000 * 1000 * 1000 / $ENV{GENOME_SIZE} * $ENV{FOLD};
         $cutoff = int $cutoff;
         print join qq(\t), ($F[0], $F[1], $cutoff);
+        $seen{$F[0]}++;
     ' \
     > opts.tsv
 
@@ -208,6 +212,28 @@ cat opts.tsv |
 
 ```
 
+* Rsync non-processed files to hpcc
+
+```shell script
+cd ~/data/plastid/Atha_cross/
+
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ -f {1}.tar.gz ]; then
+            exit;
+        fi
+
+        find ena -type f -name "*{2}*"
+    ' \
+    > rsync.lst
+
+rsync -avP \
+    --files-from=rsync.lst \
+    ~/data/plastid/Atha_cross/ \
+    wangq@202.119.37.251:data/plastid/Atha_cross
+
+```
+
 ## Run
 
 ```shell script
@@ -220,6 +246,13 @@ cat opts.tsv | # head -n 170 | #tail -n 10 |
         fi
 
         if [ ! -d {1} ]; then
+            exit;
+        fi
+
+        if [ ! -e {1}/2_illumina/R1.fq.gz ]; then
+            exit;
+        fi
+        if [ ! -e {1}/2_illumina/R2.fq.gz ]; then
             exit;
         fi
 
@@ -356,6 +389,38 @@ cat opts.tsv |
         tar -xzvf {1}.tar.gz
         rm {1}.tar.gz
     '
+
+```
+
+## VCF
+
+```shell script
+cd ~/data/plastid/Atha_cross/
+
+mkdir -p vcf
+
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+        if [ ! -f {1}.tar.gz ]; then
+            echo "==> {1}.tar.gz not exists"
+            exit;
+        fi
+
+        tar -xOzvf {1}.tar.gz {1}/3_gatk/R.filtered.vcf |
+            bcftools reheader --samples <(echo {1}) |
+            bcftools view \
+                --apply-filters PASS --types snps --max-alleles 2 --targets Pt -Oz |
+            bcftools view --include "AF>0.01" -Oz -o vcf/{1}.vcf.gz
+
+        bcftools index -f vcf/{1}.vcf.gz
+    '
+
+bcftools merge --merge all -l <(
+        cat opts.tsv |
+            cut -f 1 |
+            parallel -k -j 1 ' [ -f vcf/{}.vcf.gz ] && echo "vcf/{}.vcf.gz" '
+    ) \
+    > Atha_cross.vcf
 
 ```
 
