@@ -246,19 +246,6 @@ cat ena_info.ascp.sh |
 
 * FOLD 0, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64
 
-* Install `mdtable2csv`
-
-```shell script
-mkdir -p ${HOME}/bin
-curl -fsSL $(
-    curl -fsSL https://api.github.com/repos/515hikaru/mdtable2csv/releases/latest |
-        jq -r '.assets[] | select(.name == "mdtable2csv_linux_x86_64.tar.gz").browser_download_url'
-    ) |
-    tar xvz mdtable2csv
-mv mdtable2csv ${HOME}/bin
-
-```
-
 ## Symlink
 
 ```shell script
