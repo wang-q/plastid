@@ -293,7 +293,7 @@ rsync -avP \
 ```shell script
 cd ~/data/plastid/Atha_ma/
 
-cat opts.tsv | # head -n 170 | #tail -n 10 |
+cat opts.tsv | head -n 100 | #tail -n 10 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
             exit;
