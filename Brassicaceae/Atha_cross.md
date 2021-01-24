@@ -3,9 +3,9 @@
 [TOC levels=1-3]: # ""
 
 - [*Arabidopsis thaliana* Columbia X Ler Genome sequencing](#arabidopsis-thaliana-columbia-x-ler-genome-sequencing)
-  - [基本信息](#基本信息)
-  - [项目信息](#项目信息)
-  - [数据下载](#数据下载)
+  - [Basic info](#basic-info)
+  - [Project](#project)
+  - [Download](#download)
     - [Reference](#reference)
     - [Illumina](#illumina)
   - [Symlink](#symlink)
@@ -14,7 +14,7 @@
   - [VCF](#vcf)
 
 
-## 基本信息
+## Basic info
 
 * Genome: GCF_000001735.3, TAIR10, 119.668 Mb
 * Chloroplast: [NC_000932](https://www.ncbi.nlm.nih.gov/nuccore/NC_000932), **Columbia**, 154478 bp
@@ -23,7 +23,7 @@
 * Mitochondrion: [Y08501](https://www.ncbi.nlm.nih.gov/nuccore/Y08501), 366924 bp
 
 
-## 项目信息
+## Project
 
 * <https://www.pnas.org/content/109/51/20992.long>
 * PRJNA178613
@@ -33,8 +33,7 @@
 * PRJNA232554 - rice
 * PRJNA252997 - bee
 
-
-## 数据下载
+## Download
 
 ### Reference
 
@@ -403,7 +402,7 @@ cat opts.tsv | #head -n 100 | #tail -n 10 |
 cd ~/data/plastid/Atha_cross/
 
 cat opts.tsv |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         if [ -f {1}.tar.gz ]; then
             echo "==> {1} .tar.gz"
             exit;

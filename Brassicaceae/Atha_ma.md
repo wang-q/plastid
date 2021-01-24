@@ -293,7 +293,7 @@ rsync -avP \
 ```shell script
 cd ~/data/plastid/Atha_ma/
 
-cat opts.tsv | head -n 100 | #tail -n 10 |
+cat opts.tsv | #head -n 100 | #tail -n 10 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [ -f {1}.tar.gz ]; then
             exit;
@@ -356,7 +356,7 @@ cat opts.tsv | head -n 100 | #tail -n 10 |
 cd ~/data/plastid/Atha_ma/
 
 cat opts.tsv |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         if [ -f {1}.tar.gz ]; then
             echo "==> {1} .tar.gz"
             exit;
@@ -420,6 +420,23 @@ cat opts.tsv |
             fi
         fi
     '
+
+```
+
+* Remove processed files
+
+```shell script
+cd ~/data/plastid/Atha_ma/
+
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ ! -f {1}.tar.gz ]; then
+            exit;
+        fi
+
+        find ena -type f -name "*{2}*"
+    ' |
+    xargs rm
 
 ```
 
