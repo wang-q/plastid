@@ -300,14 +300,14 @@ cat opts.tsv |
         pushd {1}/1_genome
 
         cp ../../genome/genome.fa genome.fa
-        popd
+        popd > /dev/null
 
         mkdir -p {1}/2_illumina
         pushd {1}/2_illumina
 
         ln -fs ../../ena/{2}_1.fastq.gz R1.fq.gz
         ln -fs ../../ena/{2}_2.fastq.gz R2.fq.gz
-        popd
+        popd > /dev/null
     '
 
 ```
@@ -538,6 +538,8 @@ bcftools merge --merge all -l <(
             parallel -k -j 1 ' [ -f vcf/{}.vcf.gz ] && echo "vcf/{}.vcf.gz" '
     ) \
     > Atha_cross.vcf
+
+rm -fr vcf
 
 ```
 

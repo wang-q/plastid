@@ -7,7 +7,7 @@
 
 * [`Brassicaceae/Atha_1001.md`](Brassicaceae/Atha_1001.md)
   * *Arabidopsis thaliana* 1001 Genomes Project
-  * 1134 - 386 genomes
+  * 1134 - 705 genomes
 
 * [`Gramineae/Osat_50.md`](Gramineae/Osat_50.md)
   * *Oryza sativa* 50 accessions
