@@ -3,10 +3,10 @@
 [TOC levels=1-3]: # ""
 
 - [🌾 *Oryza sativa* 50 accessions](#-oryza-sativa-50-accessions)
-  - [基本信息](#基本信息)
-  - [项目信息](#项目信息)
-  - [其他可能可用的项目](#其他可能可用的项目)
-  - [数据下载](#数据下载)
+  - [Basic info](#basic-info)
+  - [Project](#project)
+  - [Other Projects](#other-projects)
+  - [Download](#download)
     - [Reference](#reference)
     - [Illumina](#illumina)
   - [Symlink](#symlink)
@@ -15,15 +15,19 @@
   - [VCF](#vcf)
 
 
-## 基本信息
+## Basic info
 
 * Genome: GCF_001433935.1, IRGSP-1.0, 374.422 Mb
 * Chloroplast: [NC_001320](https://www.ncbi.nlm.nih.gov/nuccore/NC_001320), **Japonica**, 134525 bp
 * Mitochondrion: [NC_011033](https://www.ncbi.nlm.nih.gov/nuccore/NC_011033), **Japonica**, 490520
   bp
 
+* Chloroplast: [NC_008155](https://www.ncbi.nlm.nih.gov/nuccore/NC_008155), **Indica**, 134496 bp
+* Mitochondrion: [NC_007886](https://www.ncbi.nlm.nih.gov/nuccore/NC_007886), **Indica**, 491515 bp
 
-## 项目信息
+Japonica 的叶绿体可能有些问题, 换成 Indica 的
+
+## Project
 
 * [SRP003189](https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP003189)
 
@@ -44,7 +48,7 @@ III 和 IV 是在孟加拉国和东北亚地区发现, 是一种叫做深水稻 
 它由特殊的水稻组成, 周期短, 光周期不敏感, 适应深水条件. IV 相当于孟加拉国的 Rayada rices. 这些是非常特殊的水稻, 在 11
 月到 12 月播种, 12 个月后收获, 早期耐寒, 对光周期敏感, 能经受 12 天的洪水, 并能将其伸长调整到 6 米深.
 
-## 其他可能可用的项目
+## Other Projects
 
 + [3000水稻基因组计划 PRJEB6180](https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=PRJEB6180)
 + [《The 3,000 rice genomes project》](https://gigascience.biomedcentral.com/articles/10.1186/2047-217X-3-7)
@@ -60,7 +64,7 @@ PRJNA522923 Resequencing data of 120 rice RILs
 
 查询种质资源信息: https://www.genesys-pgr.org/
 
-## 数据下载
+## Download
 
 ### Reference
 
@@ -68,18 +72,18 @@ PRJNA522923 Resequencing data of 120 rice RILs
 mkdir -p ~/data/plastid/Osat_50/genome
 cd ~/data/plastid/Osat_50/genome
 
-for ACCESSION in "NC_001320" "NC_011033"; do
+for ACCESSION in "NC_008155" "NC_007886"; do
     URL=$(printf "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&rettype=%s&id=%s&retmode=text" "fasta" "${ACCESSION}");
     curl $URL -o ${ACCESSION}.fa
 done
 
 TAB=$'\t'
 cat <<EOF > replace.tsv
-NC_001320${TAB}Pt
-NC_011033${TAB}Mt
+NC_008155${TAB}Pt
+NC_007886${TAB}Mt
 EOF
 
-cat NC_001320.fa NC_011033.fa |
+cat NC_008155.fa NC_007886.fa |
     faops filter -s stdin stdout |
     faops replace stdin replace.tsv stdout |
     faops order stdin <(echo Pt; echo Mt) genome.fa
@@ -348,14 +352,14 @@ cat opts.tsv |
         pushd {1}/1_genome
 
         cp ../../genome/genome.fa genome.fa
-        popd
+        popd > /dev/null
 
         mkdir -p {1}/2_illumina
         pushd {1}/2_illumina
 
         ln -fs ../../ena/{2}_1.fastq.gz R1.fq.gz
         ln -fs ../../ena/{2}_2.fastq.gz R2.fq.gz
-        popd
+        popd > /dev/null
     '
 
 ```
@@ -428,7 +432,7 @@ cat opts.tsv | #head -n 20 | #tail -n 10 |
 cd ~/data/plastid/Osat_50/
 
 cat opts.tsv |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         if [ -f {1}.tar.gz ]; then
             echo "==> {1} .tar.gz"
             exit;
@@ -495,6 +499,23 @@ cat opts.tsv |
 
 ```
 
+* Remove processed files
+
+```shell script
+cd ~/data/plastid/Osat_50/
+
+cat opts.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [ ! -f {1}.tar.gz ]; then
+            exit;
+        fi
+
+        find ena -type f -name "*{2}*"
+    ' |
+    xargs rm
+
+```
+
 * Unpack
 
 ```shell script
@@ -544,9 +565,11 @@ cat opts.tsv |
 bcftools merge --merge all -l <(
         cat opts.tsv |
             cut -f 1 |
-            xargs -I{} echo "vcf/{}.vcf.gz"
+            parallel -k -j 1 ' [ -f vcf/{}.vcf.gz ] && echo "vcf/{}.vcf.gz" '
     ) \
     > Osat_50.vcf
+
+rm -fr vcf
 
 ```
 
