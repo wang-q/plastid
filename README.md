@@ -19,7 +19,7 @@
 
 * [`Solanaceae/Slyc_360.md`](Solanaceae/Slyc_360.md)
   * *Solanum lycopersicum* 360 accessions
-  * 360 - 150 genomes
+  * 360 - 141 genomes
 
 * [`Rosaceae/peach.md`](Rosaceae/peach.md)
   * Peaches (*Prunus* spp.)
