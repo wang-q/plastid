@@ -80,16 +80,16 @@ cat SraRunTable.txt |
     > SraRunTable.tsv
 
 cat SraRunTable.tsv |
-    tsv-select -H -f Experiment,"Sample\ Name",Population,collected_by,Bases |
+    tsv-select -H -f Experiment,"Sample\ Name",Population,collected_by,Bases,AvgSpotLen |
     tsv-filter -H \
         --not-blank collected_by \
         --istr-ne collected_by:missing \
         --ge Bases:4000000000 \
-        --le Bases:10000000000 |
+        --le Bases:10000000000 \
+        --ge AvgSpotLen:90 |
     sed '1 s/^/#/' |
     keep-header -- tsv-sort -k2,2 -k5,5nr |
     tsv-uniq -H -f "Sample\ Name" --max 1 |
-    tsv-uniq -H -f Population,collected_by --max 5 | #wc -l
     cut -f 1-4 |
     mlr --itsv --ocsv cat \
     > source.csv
@@ -100,7 +100,7 @@ anchr ena prep | perl - ena_info.yml --ascp
 mlr --icsv --omd cat ena_info.csv | head -n 20
 
 cat ena_info.ascp.sh |
-    parallel --no-run-if-empty -j 2 "{}"
+    parallel --no-run-if-empty -j 1 "{}"
 
 # Skips
 cat ena_info.csv |
@@ -136,7 +136,7 @@ cat ena_info.csv |
 
 ```
 
-| name   | srx       | platform | layout | ilength | srr        | spot     | base  |
+| name   | srx       | platform | layout | ilength | srr        | spots    | bases |
 |:-------|:----------|:---------|:-------|:--------|:-----------|:---------|:------|
 | TS-1   | SRX698594 | ILLUMINA | PAIRED |         | SRR1572452 | 34236150 | 4.78G |
 | TS-10  | SRX698603 | ILLUMINA | PAIRED |         | SRR1572461 | 38680247 | 7.2G  |
@@ -200,7 +200,7 @@ cat ena/ena_info.csv |
     > opts.tsv
 
 wc -l opts.tsv
-# 141
+# 250
 
 cat opts.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
@@ -242,7 +242,7 @@ cat opts.tsv |
             exit;
         fi
 
-        find ena -type f -name "*{2}*"
+        find ena -type f -name "*{2}_*"
     ' \
     > rsync.lst
 
