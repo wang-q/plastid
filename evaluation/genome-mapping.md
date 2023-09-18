@@ -227,14 +227,15 @@ SRX7009428,Gmax_W82,HiSeq X Ten
 EOF
 
 anchr ena info | perl - -v source.csv > ena_info.yml
-anchr ena prep | perl - ena_info.yml --ascp
+anchr ena prep | perl - ena_info.yml
 
 mlr --icsv --omd cat ena_info.csv
 
 #cat ena_info.ascp.sh |
 #    parallel --no-run-if-empty -j 1 "{}"
 
-bash ena_info.ascp.sh
+aria2c -j 4 -x 4 -s 1 -c -i ena_info.ftp.txt
+md5sum --check ena_info.md5.txt
 
 # Bad quality
 # SRR1542422
