@@ -3,25 +3,41 @@
 [TOC levels=1-3]: # ""
 
 - [Mapping to genomes on folds](#mapping-to-genomes-on-folds)
-  - [Reference genomes](#reference-genomes)
-  - [Download fastq files from ENA](#download-fastq-files-from-ena)
-  - [基本信息](#基本信息)
-  - [Symlink](#symlink)
-  - [Trim, cutoff and mapping](#trim-cutoff-and-mapping)
-  - [Combine chromosomes](#combine-chromosomes)
-  - [Merge all results](#merge-all-results)
-  - [Remove intermediate files](#remove-intermediate-files)
+    - [Reference genomes](#reference-genomes)
+    - [Download fastq files from ENA](#download-fastq-files-from-ena)
+    - [基本信息](#基本信息)
+    - [Symlink](#symlink)
+    - [Trim, cutoff and mapping](#trim-cutoff-and-mapping)
+    - [Combine chromosomes](#combine-chromosomes)
+    - [Merge all results](#merge-all-results)
+    - [Remove intermediate files](#remove-intermediate-files)
 
+## Tools
+
+* https://www.ibm.com/aspera/connect/
+* https://www.biostars.org/p/9528910/
+* `~/.aspera/connect/bin/ascp`
+
+```shell
+curl -L https://ak-delivery04-mul.dhe.ibm.com/sar/CMA/OSA/0adrj/0/ibm-aspera-connect_4.1.3.93_linux.tar.gz |
+    tar xvz
+
+bash ibm-aspera-connect*
+
+```
 
 ## Reference genomes
 
+* Ensembl Release 110 (July 2023)
+* Ensembl Plants release 57
+
 * *Arabidopsis thaliana* Col-0
 
-```shell script
-mkdir -p ~/data/plastid/genome/col_0
-cd ~/data/plastid/genome/col_0
+```shell
+mkdir -p ~/data/plastid/genome/col0
+cd ~/data/plastid/genome/col0
 
-wget -N ftp://ftp.ensemblgenomes.org/pub/release-45/plants/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz
+wget -N https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-57/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz
 
 faops order Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz \
     <(for chr in {1,2,3,4,5,Mt,Pt}; do echo $chr; done) \
@@ -34,11 +50,11 @@ faops size genome.fa > chr.sizes
 
 * *Oryza sativa* Japonica Group Cultivar Nipponbare
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/genome/nip
 cd ~/data/plastid/genome/nip
 
-wget -N ftp://ftp.ensemblgenomes.org/pub/release-45/plants/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz
+wget -N https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-57/fasta/oryza_sativa/dna/Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz
 
 faops order Oryza_sativa.IRGSP-1.0.dna_sm.toplevel.fa.gz \
     <(for chr in $(seq 1 1 12) Mt Pt; do echo $chr; done) \
@@ -51,7 +67,7 @@ faops size genome.fa > chr.sizes
 
 * *Medicago truncatula* A17
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/genome/a17
 cd ~/data/plastid/genome/a17
 
@@ -60,7 +76,7 @@ for ACCESSION in "NC_003119" "NC_029641"; do
     curl $URL -o ${ACCESSION}.fa
 done
 
-aria2c -x 4 -s 2 -c ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/219/495/GCF_000219495.3_MedtrA17_4.0/GCF_000219495.3_MedtrA17_4.0_genomic.fna.gz
+aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/219/495/GCF_000219495.3_MedtrA17_4.0/GCF_000219495.3_MedtrA17_4.0_genomic.fna.gz
 
 TAB=$'\t'
 cat <<EOF > replace.tsv
@@ -87,11 +103,11 @@ faops size genome.fa > chr.sizes
 
 * *Solanum lycopersicum* Cultivar: Heinz 1706
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/genome/h1706
 cd ~/data/plastid/genome/h1706
 
-aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/188/115/GCF_000188115.4_SL3.0/GCF_000188115.4_SL3.0_genomic.fna.gz
+aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/188/115/GCF_000188115.5_SL3.1/GCF_000188115.5_SL3.1_genomic.fna.gz
 
 TAB=$'\t'
 cat <<EOF > replace.tsv
@@ -122,7 +138,7 @@ faops size genome.fa > chr.sizes
 
 * *Prunus persica* PLov2-2N (a double haploid genotype of the peach cv. Lovell)
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/genome/lovell
 cd ~/data/plastid/genome/lovell
 
@@ -151,11 +167,11 @@ faops size genome.fa > chr.sizes
 
 * *Glycine max* Williams 82
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/genome/w82
 cd ~/data/plastid/genome/w82
 
-aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/004/515/GCF_000004515.5_Glycine_max_v2.1/GCF_000004515.5_Glycine_max_v2.1_genomic.fna.gz
+aria2c -x 4 -s 2 -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/004/515/GCF_000004515.6_Glycine_max_v4.0/GCF_000004515.6_Glycine_max_v4.0_genomic.fna.gz
 
 TAB=$'\t'
 cat <<EOF > replace.tsv
@@ -183,7 +199,7 @@ NC_007942.1${TAB}Pt
 NC_020455.1${TAB}Mt
 EOF
 
-gzip -dcf GCF_000004515.5_Glycine_max_v2.1_genomic.fna.gz |
+gzip -dcf GCF*_genomic.fna.gz |
     faops replace stdin replace.tsv stdout |
     faops order stdin <(for chr in $(seq 1 1 20) Mt Pt; do echo $chr; done) genome.fa
 
@@ -194,7 +210,7 @@ faops size genome.fa > chr.sizes
 
 ## Download fastq files from ENA
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/ena
 cd ~/data/plastid/ena
 
@@ -215,8 +231,10 @@ anchr ena prep | perl - ena_info.yml --ascp
 
 mlr --icsv --omd cat ena_info.csv
 
-cat ena_info.ascp.sh |
-    parallel --no-run-if-empty -j 1 "{}"
+#cat ena_info.ascp.sh |
+#    parallel --no-run-if-empty -j 1 "{}"
+
+bash ena_info.ascp.sh
 
 # Bad quality
 # SRR1542422
@@ -224,7 +242,7 @@ cat ena_info.ascp.sh |
 ```
 
 | name         | srx        | platform | layout | ilength | srr         | spots     | bases  |
-|:-------------|:-----------|:---------|:-------|:--------|:------------|:----------|:-------|
+|--------------|------------|----------|--------|---------|-------------|-----------|--------|
 | Atha_Col_0_1 | SRX202246  | ILLUMINA | PAIRED | 450     | SRR611086   | 49891349  | 9.29G  |
 | Atha_Col_0_1 | SRX202246  | ILLUMINA | PAIRED | 450     | SRR616966   | 24851796  | 4.63G  |
 | Atha_Col_0_2 | SRX2527206 | ILLUMINA | PAIRED |         | SRR5216995  | 26893065  | 14.46G |
@@ -239,7 +257,6 @@ cat ena_info.ascp.sh |
 | Pper_Lovell  | SRX150254  | ILLUMINA | PAIRED | 400     | SRR502985   | 123590441 | 23.25G |
 | Slyc_H1706   | SRX698770  | ILLUMINA | PAIRED |         | SRR1572628  | 24198345  | 4.51G  |
 
-
 ## 基本信息
 
 `cutoff = FOLD * DEPTH`
@@ -248,16 +265,16 @@ cat ena_info.ascp.sh |
 
 ## Symlink
 
-```shell script
+```shell
 mkdir -p ~/data/plastid/evaluation
 cd ~/data/plastid/evaluation
 
 SRRS=(
-    'SRR616966::col_0'  # Col-0
-    'SRR611086::col_0'
-    'SRR5216995::col_0'
-    'SRR616965::col_0'  # Ler-0
-    'SRR611087::col_0'
+    'SRR616966::col0'  # Col-0
+    'SRR611086::col0'
+    'SRR5216995::col0'
+    'SRR616965::col0'  # Ler-0
+    'SRR611087::col0'
     'SRR545231::nip'    # Nipponbare
     'SRR063638::nip'
     'SRR1542423::a17'   # A17
@@ -295,16 +312,21 @@ done
 
 * Rsync to hpcc
 
-```shell script
+```shell
 rsync -avP \
-    ~/data/plastid/evaluation/ \
-    wangq@202.119.37.251:data/plastid/evaluation
+    ~/data/plastid/ \
+    wangq@202.119.37.251:data/plastid
 
-# rsync -avP wangq@202.119.37.251:data/plastid/evaluation/ ~/data/plastid/evaluation
+rsync -avP \
+    -e 'ssh -p 8804' \
+    ~/data/plastid/ \
+    wangq@58.213.64.36:data/plastid
+
+# rsync -avP wangq@202.119.37.251:data/plastid/ ~/data/plastid
 
 ```
 
-```shell script
+```shell
 cd ~/data/plastid/evaluation
 
 SRRS=(
@@ -390,7 +412,7 @@ done
 
 ## Combine chromosomes
 
-```shell script
+```shell
 cd ~/data/plastid/evaluation
 
 SRRS=(
@@ -445,7 +467,7 @@ done
 
 ## Merge all results
 
-```shell script
+```shell
 cd ~/data/plastid/evaluation
 
 SRRS=(
@@ -494,7 +516,6 @@ done
 
 ```
 
-
 Table: Col-0 SRR616966 Folds
 
 | Fold | chrom | chrLength | covLength | covRate | bases      | mean  | min | max   |
@@ -510,7 +531,6 @@ Table: Col-0 SRR616966 Folds
 | 32   | Nc    | 119146348 | 1661524   | 0.0139  | 177713329  | 1.49  | 0   | 22504 |
 | 64   | Nc    | 119146348 | 1081156   | 0.0091  | 167328831  | 1.40  | 0   | 22098 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:----|
 | 0    | Mt    | 366924    | 363783    | 0.9914  | 53132850 | 144.81 | 0   | 361 |
@@ -524,7 +544,6 @@ Table: Col-0 SRR616966 Folds
 | 32   | Mt    | 366924    | 25910     | 0.0706  | 544902   | 1.49   | 0   | 250 |
 | 64   | Mt    | 366924    | 17448     | 0.0476  | 373665   | 1.02   | 0   | 256 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean    | min | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:--------|:----|:-----|
 | 0    | Pt    | 154478    | 154478    | 1.0000  | 390524494 | 2528.03 | 4   | 3444 |
@@ -537,7 +556,6 @@ Table: Col-0 SRR616966 Folds
 | 16   | Pt    | 154478    | 154478    | 1.0000  | 389918324 | 2524.10 | 4   | 3442 |
 | 32   | Pt    | 154478    | 154478    | 1.0000  | 389773309 | 2523.16 | 2   | 3442 |
 | 64   | Pt    | 154478    | 148548    | 0.9616  | 258998421 | 1676.60 | 0   | 3437 |
-
 
 Table: Col-0 SRR611086 Folds
 
@@ -554,7 +572,6 @@ Table: Col-0 SRR611086 Folds
 | 32   | Nc    | 119146348 | 3068787   | 0.0258  | 319157424  | 2.68  | 0   | 45961 |
 | 64   | Nc    | 119146348 | 1992580   | 0.0167  | 297862635  | 2.50  | 0   | 45354 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean   | min | max |
 |:-----|:------|:----------|:----------|:--------|:----------|:-------|:----|:----|
 | 0    | Mt    | 366924    | 363907    | 0.9918  | 110294430 | 300.59 | 0   | 729 |
@@ -568,7 +585,6 @@ Table: Col-0 SRR611086 Folds
 | 32   | Mt    | 366924    | 57643     | 0.1571  | 1206441   | 3.29   | 0   | 609 |
 | 64   | Mt    | 366924    | 41074     | 0.1119  | 979520    | 2.67   | 0   | 620 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean    | min | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:--------|:----|:-----|
 | 0    | Pt    | 154478    | 154478    | 1.0000  | 693275576 | 4487.86 | 2   | 5904 |
@@ -581,7 +597,6 @@ Table: Col-0 SRR611086 Folds
 | 16   | Pt    | 154478    | 154478    | 1.0000  | 692042081 | 4479.87 | 2   | 5898 |
 | 32   | Pt    | 154478    | 154431    | 0.9997  | 691313793 | 4475.16 | 0   | 5898 |
 | 64   | Pt    | 154478    | 151268    | 0.9792  | 412296703 | 2668.97 | 0   | 5879 |
-
 
 Table: Col-0 SRR5216995 Folds
 
@@ -598,7 +613,6 @@ Table: Col-0 SRR5216995 Folds
 | 32   | Nc    | 119146348 | 1403503   | 0.0118  | 581422777  | 4.88  | 0   | 99633  |
 | 64   | Nc    | 119146348 | 623905    | 0.0052  | 537191586  | 4.51  | 0   | 92620  |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:----|
 | 0    | Mt    | 366924    | 362889    | 0.9890  | 94469130 | 257.46 | 0   | 617 |
@@ -612,7 +626,6 @@ Table: Col-0 SRR5216995 Folds
 | 32   | Mt    | 366924    | 19262     | 0.0525  | 430357   | 1.17   | 0   | 575 |
 | 64   | Mt    | 366924    | 7556      | 0.0206  | 296209   | 0.81   | 0   | 582 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean    | min  | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:--------|:-----|:-----|
 | 0    | Pt    | 154478    | 154478    | 1.0000  | 895029108 | 5793.89 | 1368 | 8188 |
@@ -625,7 +638,6 @@ Table: Col-0 SRR5216995 Folds
 | 16   | Pt    | 154478    | 154478    | 1.0000  | 889340183 | 5757.07 | 1324 | 8166 |
 | 32   | Pt    | 154478    | 154478    | 1.0000  | 888571719 | 5752.09 | 1213 | 8166 |
 | 64   | Pt    | 154478    | 83678     | 0.5417  | 286346173 | 1853.64 | 0    | 7844 |
-
 
 Table: Ler-0 SRR616965 Folds
 
@@ -642,7 +654,6 @@ Table: Ler-0 SRR616965 Folds
 | 32   | Nc    | 119146348 | 2325855   | 0.0195  | 160846975  | 1.35  | 0   | 23116 |
 | 64   | Nc    | 119146348 | 1876951   | 0.0158  | 152689486  | 1.28  | 0   | 22457 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean   | min | max |
 |:-----|:------|:----------|:----------|:--------|:----------|:-------|:----|:----|
 | 0    | Mt    | 366924    | 351472    | 0.9579  | 109519085 | 298.48 | 0   | 822 |
@@ -656,7 +667,6 @@ Table: Ler-0 SRR616965 Folds
 | 32   | Mt    | 366924    | 79795     | 0.2175  | 1378446   | 3.76   | 0   | 619 |
 | 64   | Mt    | 366924    | 76285     | 0.2079  | 1374260   | 3.75   | 0   | 616 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean    | min | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:--------|:----|:-----|
 | 0    | Pt    | 154478    | 154478    | 1.0000  | 767923755 | 4971.09 | 244 | 6898 |
@@ -669,7 +679,6 @@ Table: Ler-0 SRR616965 Folds
 | 16   | Pt    | 154478    | 154478    | 1.0000  | 767834842 | 4970.51 | 243 | 6970 |
 | 32   | Pt    | 154478    | 154478    | 1.0000  | 767808163 | 4970.34 | 243 | 6924 |
 | 64   | Pt    | 154478    | 154478    | 1.0000  | 767857310 | 4970.66 | 177 | 6968 |
-
 
 Table: Ler-0 SRR611087 Folds
 
@@ -686,7 +695,6 @@ Table: Ler-0 SRR611087 Folds
 | 32   | Nc    | 119146348 | 3748466   | 0.0315  | 275464674  | 2.31  | 0   | 38765 |
 | 64   | Nc    | 119146348 | 3197041   | 0.0268  | 257588137  | 2.16  | 0   | 37975 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:-------|:----|:-----|
 | 0    | Mt    | 366924    | 352249    | 0.9600  | 219983375 | 599.53 | 0   | 1653 |
@@ -700,7 +708,6 @@ Table: Ler-0 SRR611087 Folds
 | 32   | Mt    | 366924    | 131237    | 0.3577  | 3010889   | 8.21   | 0   | 1248 |
 | 64   | Mt    | 366924    | 128565    | 0.3504  | 2769396   | 7.55   | 0   | 1262 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases      | mean    | min | max  |
 |:-----|:------|:----------|:----------|:--------|:-----------|:--------|:----|:-----|
 | 0    | Pt    | 154478    | 154478    | 1.0000  | 1102940670 | 7139.79 | 20  | 9621 |
@@ -713,7 +720,6 @@ Table: Ler-0 SRR611087 Folds
 | 16   | Pt    | 154478    | 154478    | 1.0000  | 1102868223 | 7139.32 | 20  | 9569 |
 | 32   | Pt    | 154478    | 154478    | 1.0000  | 1102811593 | 7138.96 | 20  | 9656 |
 | 64   | Pt    | 154478    | 154445    | 0.9998  | 1102669960 | 7138.04 | 0   | 9611 |
-
 
 Table: Nipponbare SRR545231 Folds
 
@@ -730,7 +736,6 @@ Table: Nipponbare SRR545231 Folds
 | 32   | Nc    | 373245519 | 50568041  | 0.1355  | 1272065380  | 3.41  | 0   | 7797 |
 | 64   | Nc    | 373245519 | 33468069  | 0.0897  | 798576696   | 2.14  | 0   | 7212 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:----|
 | 0    | Mt    | 490520    | 488459    | 0.9958  | 62088079 | 126.58 | 0   | 465 |
@@ -744,7 +749,6 @@ Table: Nipponbare SRR545231 Folds
 | 32   | Mt    | 490520    | 33508     | 0.0683  | 3760523  | 7.67   | 0   | 447 |
 | 64   | Mt    | 490520    | 6881      | 0.0140  | 486583   | 0.99   | 0   | 405 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
 | 0    | Pt    | 134525    | 132943    | 0.9882  | 56062147 | 416.74 | 0   | 1746 |
@@ -757,7 +761,6 @@ Table: Nipponbare SRR545231 Folds
 | 16   | Pt    | 134525    | 132857    | 0.9876  | 55970896 | 416.06 | 0   | 1746 |
 | 32   | Pt    | 134525    | 115373    | 0.8576  | 29714063 | 220.88 | 0   | 1743 |
 | 64   | Pt    | 134525    | 18374     | 0.1366  | 2141712  | 15.92  | 0   | 450  |
-
 
 Table: NP SRR063638 Folds
 
@@ -774,7 +777,6 @@ Table: NP SRR063638 Folds
 | 32   | Nc    | 373245519 | 36156052  | 0.0969  | 393014785  | 1.05 | 0   | 3462 |
 | 64   | Nc    | 373245519 | 23672609  | 0.0634  | 324573449  | 0.87 | 0   | 3451 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean  | min | max |
 |:-----|:------|:----------|:----------|:--------|:---------|:------|:----|:----|
 | 0    | Mt    | 490520    | 488175    | 0.9952  | 46766188 | 95.34 | 0   | 665 |
@@ -788,7 +790,6 @@ Table: NP SRR063638 Folds
 | 32   | Mt    | 490520    | 82202     | 0.1676  | 5115594  | 10.43 | 0   | 640 |
 | 64   | Mt    | 490520    | 61990     | 0.1264  | 4177739  | 8.52  | 0   | 673 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
 | 0    | Pt    | 134525    | 133283    | 0.9908  | 68261865 | 507.43 | 0   | 2615 |
@@ -801,7 +802,6 @@ Table: NP SRR063638 Folds
 | 16   | Pt    | 134525    | 133226    | 0.9903  | 68244550 | 507.30 | 0   | 2616 |
 | 32   | Pt    | 134525    | 133094    | 0.9894  | 68281992 | 507.58 | 0   | 2618 |
 | 64   | Pt    | 134525    | 133204    | 0.9902  | 68314292 | 507.82 | 0   | 2616 |
-
 
 Table: A17 SRR1542423 Folds
 
@@ -818,7 +818,6 @@ Table: A17 SRR1542423 Folds
 | 32   | Nc    | 384466993 | 16235103  | 0.0422  | 618721163  | 1.61 | 0   | 103831 |
 | 64   | Nc    | 384466993 | 11134978  | 0.0290  | 507222214  | 1.32 | 0   | 105054 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:----|
 | 0    | Mt    | 271618    | 271618    | 1.0000  | 49932049 | 183.83 | 1   | 726 |
@@ -832,7 +831,6 @@ Table: A17 SRR1542423 Folds
 | 32   | Mt    | 271618    | 21853     | 0.0805  | 578709   | 2.13   | 0   | 571 |
 | 64   | Mt    | 271618    | 14959     | 0.0551  | 40418    | 0.15   | 0   | 127 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:---------|:-------|:----|:-----|
 | 0    | Pt    | 124033    | 124031    | 1.0000  | 80757838 | 651.10 | 0   | 3314 |
@@ -845,7 +843,6 @@ Table: A17 SRR1542423 Folds
 | 16   | Pt    | 124033    | 123771    | 0.9979  | 79182159 | 638.40 | 0   | 3281 |
 | 32   | Pt    | 124033    | 117909    | 0.9506  | 75454137 | 608.34 | 0   | 3284 |
 | 64   | Pt    | 124033    | 82647     | 0.6663  | 54141806 | 436.51 | 0   | 3278 |
-
 
 Table: Heinz1706 SRR1572628 Folds
 
@@ -862,7 +859,6 @@ Table: Heinz1706 SRR1572628 Folds
 | 32   | Nc    | 807224664 | 75908434  | 0.0940  | 515050993  | 0.64 | 0   | 20284 |
 | 64   | Nc    | 807224664 | 61797609  | 0.0766  | 436774399  | 0.54 | 0   | 20279 |
 
-
 | Fold | chrom | chrLength | covLength | covRate | bases    | mean  | min | max |
 |:-----|:------|:----------|:----------|:--------|:---------|:------|:----|:----|
 | 0    | Mt    | 446257    | 446257    | 1.0000  | 43828430 | 98.21 | 2   | 828 |
@@ -875,7 +871,6 @@ Table: Heinz1706 SRR1572628 Folds
 | 16   | Mt    | 446257    | 436794    | 0.9788  | 39605474 | 88.75 | 0   | 861 |
 | 32   | Mt    | 446257    | 209356    | 0.4691  | 13305819 | 29.82 | 0   | 840 |
 | 64   | Mt    | 446257    | 31133     | 0.0698  | 1332256  | 2.99  | 0   | 863 |
-
 
 | Fold | chrom | chrLength | covLength | covRate | bases     | mean   | min | max  |
 |:-----|:------|:----------|:----------|:--------|:----------|:-------|:----|:-----|
@@ -890,8 +885,7 @@ Table: Heinz1706 SRR1572628 Folds
 | 32   | Pt    | 155461    | 155461    | 1.0000  | 132639793 | 853.20 | 5   | 2241 |
 | 64   | Pt    | 155461    | 155461    | 1.0000  | 132292659 | 850.97 | 6   | 2241 |
 
-
-```shell script
+```shell
 cd ~/data/plastid/evaluation
 
 SRRS=(
@@ -937,7 +931,6 @@ done
 
 ```
 
-
 Table: Col-0 SRR616966 Reads
 
 | Fold | Illumina.R | trim.R  | Q25L60  |
@@ -952,7 +945,6 @@ Table: Col-0 SRR616966 Reads
 | 16   | 4.97G      | 981.34M | 912.91M |
 | 32   | 4.97G      | 957.19M | 890.32M |
 | 64   | 4.97G      | 761.94M | 710.47M |
-
 
 Table: Col-0 SRR611086 Reads
 
@@ -969,7 +961,6 @@ Table: Col-0 SRR611086 Reads
 | 32   | 9.98G      | 1.81G  | 1.69G  |
 | 64   | 9.98G      | 1.39G  | 1.3G   |
 
-
 Table: Col-0 SRR5216995 Reads
 
 | Fold | Illumina.R | trim.R | Q25L60 |
@@ -984,7 +975,6 @@ Table: Col-0 SRR5216995 Reads
 | 16   | 15.53G     | 2.69G  | 2.41G  |
 | 32   | 15.53G     | 2.59G  | 2.33G  |
 | 64   | 15.53G     | 1.53G  | 1.35G  |
-
 
 Table: Ler-0 SRR616965 Reads
 
@@ -1001,7 +991,6 @@ Table: Ler-0 SRR616965 Reads
 | 32   | 5.09G      | 1.57G  | 1.48G  |
 | 64   | 5.09G      | 1.56G  | 1.47G  |
 
-
 Table: Ler-0 SRR611087 Reads
 
 | Fold | Illumina.R | trim.R | Q25L60 |
@@ -1016,7 +1005,6 @@ Table: Ler-0 SRR611087 Reads
 | 16   | 10.16G     | 2.82G  | 2.65G  |
 | 32   | 10.16G     | 2.74G  | 2.58G  |
 | 64   | 10.16G     | 2.71G  | 2.55G  |
-
 
 Table: Nipponbare SRR545231 Reads
 
@@ -1033,7 +1021,6 @@ Table: Nipponbare SRR545231 Reads
 | 32   | 17.22G     | 1.49G  | 1.4G    |
 | 64   | 17.22G     | 931.8M | 872.28M |
 
-
 Table: NP SRR063638 Reads
 
 | Fold | Illumina.R | trim.R  | Q25L60  |
@@ -1048,7 +1035,6 @@ Table: NP SRR063638 Reads
 | 16   | 5.96G      | 703.88M | 626.12M |
 | 32   | 5.96G      | 586.72M | 522M    |
 | 64   | 5.96G      | 501.67M | 446.5M  |
-
 
 Table: A17 SRR1542423 Reads
 
@@ -1065,7 +1051,6 @@ Table: A17 SRR1542423 Reads
 | 32   | 8.96G      | 1.9G   | 1.68G  |
 | 64   | 8.96G      | 1.71G  | 1.51G  |
 
-
 Table: Heinz1706 SRR1572628 Reads
 
 | Fold | Illumina.R | trim.R  | Q25L60  |
@@ -1081,10 +1066,9 @@ Table: Heinz1706 SRR1572628 Reads
 | 32   | 4.84G      | 902.96M | 813.96M |
 | 64   | 4.84G      | 790.91M | 711.65M |
 
-
 ## Remove intermediate files
 
-```shell script
+```shell
 cd ~/data/plastid/evaluation
 
 find . -type d -name "trim" | xargs rm -fr
