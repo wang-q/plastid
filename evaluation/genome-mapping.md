@@ -227,7 +227,7 @@ SRX7009428,Gmax_W82,HiSeq X Ten
 EOF
 
 anchr ena info | perl - -v source.csv > ena_info.yml
-anchr ena prep | perl - ena_info.yml
+anchr ena prep | perl - ena_info.yml --ascp
 
 mlr --icsv --omd cat ena_info.csv
 
