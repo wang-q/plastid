@@ -16,13 +16,34 @@
 
 * https://www.ibm.com/aspera/connect/
 * https://www.biostars.org/p/9528910/
+* https://github.com/PRIDE-Archive/pride-inspector/blob/master/aspera/etc/asperaweb_id_dsa.openssh
 * `~/.aspera/connect/bin/ascp`
 
 ```shell
-curl -L https://ak-delivery04-mul.dhe.ibm.com/sar/CMA/OSA/0adrj/0/ibm-aspera-connect_4.1.3.93_linux.tar.gz |
+curl -L https://delivery04-mul.dhe.ibm.com/sar/CMA/OSA/0cz8y/0/ibm-aspera-connect_4.2.14.855-HEAD_linux_x86_64.tar.gz |
     tar xvz
 
 bash ibm-aspera-connect*
+
+cat >> $HOME/.aspera/connect/etc/asperaweb_id_dsa.openssh <<EOF
+-----BEGIN DSA PRIVATE KEY-----
+MIIBuwIBAAKBgQDkKQHD6m4yIxgjsey6Pny46acZXERsJHy54p/BqXIyYkVOAkEp
+KgvT3qTTNmykWWw4ovOP1+Di1c/2FpYcllcTphkWcS8lA7j012mUEecXavXjPPG0
+i3t5vtB8xLy33kQ3e9v9/Lwh0xcRfua0d5UfFwopBIAXvJAr3B6raps8+QIVALws
+yeqsx3EolCaCVXJf+61ceJppAoGAPoPtEP4yzHG2XtcxCfXab4u9zE6wPz4ePJt0
+UTn3fUvnQmJT7i0KVCRr3g2H2OZMWF12y0jUq8QBuZ2so3CHee7W1VmAdbN7Fxc+
+cyV9nE6zURqAaPyt2bE+rgM1pP6LQUYxgD3xKdv1ZG+kDIDEf6U3onjcKbmA6ckx
+T6GavoACgYEAobapDv5p2foH+cG5K07sIFD9r0RD7uKJnlqjYAXzFc8U76wXKgu6
+WXup2ac0Co+RnZp7Hsa9G+E+iJ6poI9pOR08XTdPly4yDULNST4PwlfrbSFT9FVh
+zkWfpOvAUc8fkQAhZqv/PE6VhFQ8w03Z8GpqXx7b3NvBR+EfIx368KoCFEyfl0vH
+Ta7g6mGwIMXrdTQQ8fZs
+-----END DSA PRIVATE KEY-----
+EOF
+
+chmod 600 $HOME/.aspera/connect/etc/asperaweb_id_dsa.openssh
+
+cd $HOME/bin
+ln -s ../.aspera/connect/bin/ascp ascp
 
 ```
 
@@ -67,7 +88,8 @@ hnsm size genome.fa -o chr.sizes
 
 * *Medicago truncatula* A17
 
-The Ensembl version lacks chromosome naming and does not include chloroplast and mitochondrial genomes, which need to be constructed manually.
+The Ensembl version lacks chromosome naming and does not include chloroplast and mitochondrial
+genomes, which need to be constructed manually.
 
 ```shell
 #mkdir -p ~/data/plastid/genome/a17
@@ -285,7 +307,7 @@ EOF
 anchr ena info | perl - -v source.csv > ena_info.yml
 anchr ena prep | perl - ena_info.yml --ascp
 
-mlr --icsv --omd cat ena_info.csv
+rgr md ena_info.tsv --fmt
 
 #cat ena_info.ascp.sh |
 #    parallel --no-run-if-empty -j 1 "{}"
@@ -298,21 +320,21 @@ md5sum --check ena_info.md5.txt
 
 ```
 
-| name         | srx        | platform | layout | ilength | srr         | spots     | bases  |
-|--------------|------------|----------|--------|---------|-------------|-----------|--------|
-| Atha_Col_0_1 | SRX202246  | ILLUMINA | PAIRED | 450     | SRR611086   | 49891349  | 9.29G  |
-| Atha_Col_0_1 | SRX202246  | ILLUMINA | PAIRED | 450     | SRR616966   | 24851796  | 4.63G  |
-| Atha_Col_0_2 | SRX2527206 | ILLUMINA | PAIRED |         | SRR5216995  | 26893065  | 14.46G |
-| Atha_Ler_0   | SRX202247  | ILLUMINA | PAIRED | 450     | SRR611087   | 50791450  | 9.46G  |
-| Atha_Ler_0   | SRX202247  | ILLUMINA | PAIRED | 450     | SRR616965   | 25436255  | 4.74G  |
-| Gmax_W82     | SRX7009428 | ILLUMINA | PAIRED |         | SRR10296600 | 162110355 | 45.29G |
-| Mtru_A17     | SRX673852  | ILLUMINA | PAIRED | 360     | SRR1542422  | 99418334  | 16.67G |
-| Mtru_A17     | SRX673852  | ILLUMINA | PAIRED | 360     | SRR1542423  | 29663436  | 8.34G  |
-| Osat_Nip     | SRX179254  | ILLUMINA | PAIRED | 300     | SRR545059   | 85148124  | 7.93G  |
-| Osat_Nip     | SRX179254  | ILLUMINA | PAIRED | 300     | SRR545231   | 85251097  | 16.04G |
-| Osat_Nip_2   | SRX025260  | ILLUMINA | PAIRED | 463     | SRR063638   | 29784011  | 5.55G  |
-| Pper_Lovell  | SRX150254  | ILLUMINA | PAIRED | 400     | SRR502985   | 123590441 | 23.25G |
-| Slyc_H1706   | SRX698770  | ILLUMINA | PAIRED |         | SRR1572628  | 24198345  | 4.51G  |
+| name         | srx        | platform | layout | ilength | srr         |       spots | bases  |
+|--------------|------------|----------|--------|---------|-------------|------------:|--------|
+| Atha_Col_0_1 | SRX202246  | ILLUMINA | PAIRED | 450     | SRR616966   |  24,851,796 | 4.63G  |
+| Atha_Col_0_1 | SRX202246  | ILLUMINA | PAIRED | 450     | SRR611086   |  49,891,349 | 9.29G  |
+| Atha_Col_0_2 | SRX2527206 | ILLUMINA | PAIRED |         | SRR5216995  |  26,893,065 | 14.46G |
+| Atha_Ler_0   | SRX202247  | ILLUMINA | PAIRED | 450     | SRR616965   |  25,436,255 | 4.74G  |
+| Atha_Ler_0   | SRX202247  | ILLUMINA | PAIRED | 450     | SRR611087   |  50,791,450 | 9.46G  |
+| Gmax_W82     | SRX7009428 | ILLUMINA | PAIRED |         | SRR10296600 | 162,110,355 | 45.29G |
+| Mtru_A17     | SRX673852  | ILLUMINA | PAIRED | 360     | SRR1542423  |  29,663,436 | 8.34G  |
+| Mtru_A17     | SRX673852  | ILLUMINA | PAIRED | 360     | SRR1542422  |  99,418,334 | 16.67G |
+| Osat_Nip     | SRX179254  | ILLUMINA | PAIRED | 300     | SRR545231   |  85,251,097 | 16.04G |
+| Osat_Nip     | SRX179254  | ILLUMINA | PAIRED | 300     | SRR545059   |  85,148,124 | 7.93G  |
+| Osat_Nip_2   | SRX025260  | ILLUMINA | PAIRED | 463     | SRR063638   |  29,784,011 | 5.55G  |
+| Pper_Lovell  | SRX150254  | ILLUMINA | PAIRED | 400     | SRR502985   | 123,590,441 | 23.25G |
+| Slyc_H1706   | SRX698770  | ILLUMINA | PAIRED |         | SRR1572628  |  24,198,345 | 4.51G  |
 
 ## 基本信息
 
