@@ -1,18 +1,17 @@
 # *Arabidopsis thaliana* Mutation Accumulation Lines
 
-[TOC levels=1-3]: # ""
-
-- [*Arabidopsis
-  thaliana* Mutation Accumulation Lines](#arabidopsis-thaliana-mutation-accumulation-lines)
-    - [Basic info](#basic-info)
-    - [Project](#project)
-    - [Download](#download)
-        - [Reference](#reference)
-        - [Illumina](#illumina)
-    - [Symlink](#symlink)
-    - [Run](#run)
-    - [Pack and clean](#pack-and-clean)
-    - [VCF](#vcf)
+<!-- TOC -->
+* [*Arabidopsis thaliana* Mutation Accumulation Lines](#arabidopsis-thaliana-mutation-accumulation-lines)
+  * [Basic info](#basic-info)
+  * [Project](#project)
+  * [Download](#download)
+    * [Reference](#reference)
+    * [Illumina](#illumina)
+  * [Symlink](#symlink)
+  * [Run](#run)
+  * [Pack and clean](#pack-and-clean)
+  * [VCF](#vcf)
+<!-- TOC -->
 
 ## Basic info
 
