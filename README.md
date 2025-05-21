@@ -13,7 +13,7 @@
   * *Oryza sativa* 50 accessions
   * 50 genomes
 
-* [`Leguminosae/Mtru_hapmap.md`](Leguminosae/Mtru_hapmap.md)
+* [`Leguminosae/Mtru_hapmap.md`](Leguminosae/Mtru_384)
   * *Medicago truncatula* Hapmap Project
   * 384 - 156 genomes
 

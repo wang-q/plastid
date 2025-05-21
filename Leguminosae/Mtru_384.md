@@ -1,26 +1,24 @@
 # *Medicago truncatula* Hapmap Project
 
-[TOC levels=1-3]: # ""
-
-- [*Medicago truncatula* Hapmap Project](#medicago-truncatula-hapmap-project)
-  - [基本信息](#基本信息)
-  - [项目信息](#项目信息)
-  - [其他可能可用的项目](#其他可能可用的项目)
-  - [数据下载](#数据下载)
-    - [Reference](#reference)
-    - [Illumina](#illumina)
-  - [Symlink](#symlink)
-  - [Run](#run)
-  - [Pack and clean](#pack-and-clean)
-  - [VCF](#vcf)
-
+<!-- TOC -->
+* [*Medicago truncatula* Hapmap Project](#medicago-truncatula-hapmap-project)
+  * [基本信息](#基本信息)
+  * [项目信息](#项目信息)
+  * [其他可能可用的项目](#其他可能可用的项目)
+  * [数据下载](#数据下载)
+    * [Reference](#reference)
+    * [Illumina](#illumina)
+  * [Symlink](#symlink)
+  * [Run](#run)
+  * [Pack and clean](#pack-and-clean)
+  * [VCF](#vcf)
+<!-- TOC -->
 
 ## 基本信息
 
 * Genome: GCF_000219495.3, MedtrA17_4.0, 412.924 Mb
 * Chloroplast: [NC_003119](https://www.ncbi.nlm.nih.gov/nuccore/NC_003119), 124033 bp
 * Mitochondrion: [NC_029641](https://www.ncbi.nlm.nih.gov/nuccore/NC_029641), 271618 bp
-
 
 ## 项目信息
 
@@ -37,11 +35,9 @@
 > genome segments with shared ancestry (haplotypes) - and thereby creating a long-term,
 > community-accessible genome-wide association (GWA) mapping resource.
 
-
 ## 其他可能可用的项目
 
 PRJNA170333
-
 
 ## 数据下载
 
@@ -63,41 +59,43 @@ NC_029641${TAB}Mt
 EOF
 
 cat NC_003119.fa NC_029641.fa |
-    faops filter -s stdin stdout |
-    faops replace stdin replace.tsv stdout |
-    faops order stdin <(echo Pt; echo Mt) genome.fa
+    hnsm filter -s stdin |
+    hnsm replace stdin replace.tsv |
+    hnsm order stdin <(echo Pt; echo Mt) -o genome.fa
 
 ```
 
 ### Illumina
 
 * Download `Metadata` from NCBI SRA Run Selector via a web browser
-  * https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA256006
-  * Save it to `SraRunTable.txt`
+    * https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP001874
+    * Save it to `SraRunTable.csv`
 
-* http://www.medicagohapmap.org/hapmap/germplasm
-  * Extract table via `pup`
-  * Convert xls to csv via `excel`
+* https://medicago.legumeinfo.org/tools/germplasm/
+    * Save the page via browser
+    * Extract table via `pup`
+    * Convert xls to csv via `excel`
 
 ```shell script
 mkdir -p ~/data/plastid/Mtru_384/ena
 cd ~/data/plastid/Mtru_384/ena
 
-cat SraRunTable.txt |
+cat SraRunTable.csv |
     mlr --icsv --otsv cat \
     > SraRunTable.tsv
 
-curl http://www.medicagohapmap.org/hapmap/germplasm |
-    pup 'table#germplasmData' \
+ cat 'Germplasm – Medicago Analysis Portal.html' |
+    pup 'table#germplasm-datatable' \
     > germplasm.xls
 
 # Convert xls(html) to csv via `excel`
 cat germplasm.csv | wc -l
-#338
+#339
 
 cat germplasm.csv |
     head -n 11 |
-    mlr --icsv --omd cat
+    mlr --icsv --otsv cat |
+    rgr md stdin --num
 
 cat SraRunTable.tsv |
     tsv-filter -H \
@@ -126,7 +124,7 @@ cat germplasm.csv |
     tsv-join -H --data-fields "ID" --key-fields "Library\ Name" \
         -f corrected.tsv \
         --append-fields AvgSpotLen,Instrument,Bases,Experiment |
-    tsv-select -H -f Experiment,ID,"Country\ of\ Origin" |
+    tsv-select -H -f Experiment,ID,"Country" |
     mlr --itsv --ocsv cat |
     sed 1d \
     > source.csv
@@ -134,50 +132,50 @@ cat germplasm.csv |
 anchr ena info | perl - -v source.csv > ena_info.yml
 anchr ena prep | perl - ena_info.yml --ascp
 
-mlr --icsv --omd cat ena_info.csv | head -n 20
+rgr md ena_info.tsv --fmt |
+    head -n 20
 
 cat ena_info.ascp.sh |
     parallel --no-run-if-empty -j 2 "{}"
 
 ```
 
-| ID    | Line    | Population of Origin | Country of Origin | Category | Seeds From       | Status    |
-|:------|:--------|:---------------------|:------------------|:---------|:-----------------|:----------|
-| HM001 | L000163 | SA22322              | Syria             | CC8      | INRA-Montpellier | Processed |
-| HM002 | L000174 | SA28064              | Cyprus            | CC8      | INRA-Montpellier | Processed |
-| HM003 | L000544 | ESP105-L             | Spain             | CC8      | INRA-Montpellier | Processed |
-| HM004 | L000736 | DZA045-6             | Algeria           | CC8      | INRA-Montpellier | Processed |
-| HM005 | L000734 | DZA315-16            | Algeria           | CC8      | INRA-Montpellier | Processed |
-| HM006 | L000530 | F83005-5             | France            | CC8      | INRA-Montpellier | Processed |
-| HM007 | L000651 | Salses71B            | France            | CC8      | INRA-Montpellier | Processed |
-| HM008 | L000368 | DZA012-J             | Algeria           | CC8      | INRA-Montpellier | Processed |
-| HM009 | L000555 | GRC020-B             | Greece            | CC16     | INRA-Montpellier | Processed |
-| HM010 | L000154 | SA24714              | Italy             | CC16     | INRA-Montpellier | Processed |
+| ID    | Line | Accession | Country | Seeds Origin     | Latitude | Longitude |
+|-------|------|-----------|---------|------------------|---------:|----------:|
+| HM001 | CC8  | SA22322   | Syria   | INRA-Montpellier |   35.017 |      37.1 |
+| HM002 | CC8  | SA28064   | Cyprus  | INRA-Montpellier |   34.783 |    33.167 |
+| HM003 | CC8  | ESP105-L  | Spain   | INRA-Montpellier |   38.076 |    -3.816 |
+| HM004 | CC8  | DZA045-6  | Algeria | INRA-Montpellier |   36.923 |     7.736 |
+| HM005 | CC8  | DZA315-16 | Algeria | INRA-Montpellier |   34.716 |     0.158 |
+| HM006 | CC8  | F83005-5  | France  | INRA-Montpellier |   43.571 |     6.224 |
+| HM007 | CC8  | Salses71B | France  | INRA-Montpellier |    42.82 |     2.945 |
+| HM008 | CC8  | DZA012-J  | Algeria | INRA-Montpellier |   36.549 |     3.183 |
+| HM009 | CC16 | GRC020-B  | Greece  | INRA-Montpellier |   38.122 |    21.543 |
+| HM010 | CC16 | SA24714   | Italy   | INRA-Montpellier |   37.533 |    14.517 |
 
-
-| name  | srx       | platform | layout | ilength | srr        | spots    | bases |
-|:------|:----------|:---------|:-------|:--------|:-----------|:---------|:------|
-| HM001 | SRX375894 | ILLUMINA | PAIRED | 257     | SRR1034054 | 18738482 | 3.14G |
-| HM002 | SRX375896 | ILLUMINA | PAIRED | 219     | SRR1034056 | 20086982 | 3.37G |
-| HM003 | SRX375917 | ILLUMINA | PAIRED | 283     | SRR1034077 | 18599526 | 3.12G |
-| HM004 | SRX375905 | ILLUMINA | PAIRED | 273     | SRR1034065 | 19031676 | 3.19G |
-| HM005 | SRX375923 | ILLUMINA | PAIRED | 247     | SRR1034083 | 18903805 | 3.17G |
-| HM006 | SRX376009 | ILLUMINA | PAIRED | 359     | SRR1034169 | 18531405 | 3.11G |
-| HM007 | SRX375930 | ILLUMINA | PAIRED | 229     | SRR1034090 | 22213827 | 3.72G |
-| HM008 | SRX375937 | ILLUMINA | PAIRED | 214     | SRR1034097 | 21766454 | 3.65G |
-| HM009 | SRX375970 | ILLUMINA | PAIRED | 262     | SRR1034130 | 16090912 | 2.7G  |
-| HM010 | SRX376080 | ILLUMINA | PAIRED | 241     | SRR1034240 | 14071825 | 2.36G |
-| HM011 | SRX375943 | ILLUMINA | PAIRED | 228     | SRR1034103 | 15624226 | 2.62G |
-| HM012 | SRX375962 | ILLUMINA | PAIRED | 351     | SRR1034122 | 16190747 | 2.71G |
-| HM013 | SRX375998 | ILLUMINA | PAIRED | 365     | SRR1034158 | 18067454 | 3.03G |
-| HM014 | SRX375910 | ILLUMINA | PAIRED | 293     | SRR1034070 | 29010895 | 4.86G |
-| HM015 | SRX375948 | ILLUMINA | PAIRED | 298     | SRR1034108 | 20171851 | 3.38G |
-| HM016 | SRX375953 | ILLUMINA | PAIRED | 299     | SRR1034113 | 22543648 | 3.78G |
-| HM017 | SRX376069 | ILLUMINA | PAIRED | 256     | SRR1034229 | 18409555 | 3.09G |
-| HM018 | SRX376025 | ILLUMINA | PAIRED | 339     | SRR1034185 | 21545311 | 3.61G |
+| name  | srx       | platform | layout | ilength | srr        |      spots | bases |
+|-------|-----------|----------|--------|--------:|------------|-----------:|-------|
+| HM001 | SRX375894 | ILLUMINA | PAIRED |     257 | SRR1034054 | 18,738,482 | 3.14G |
+| HM002 | SRX375896 | ILLUMINA | PAIRED |     219 | SRR1034056 | 20,086,982 | 3.37G |
+| HM003 | SRX375917 | ILLUMINA | PAIRED |     283 | SRR1034077 | 18,599,526 | 3.12G |
+| HM004 | SRX375905 | ILLUMINA | PAIRED |     273 | SRR1034065 | 19,031,676 | 3.19G |
+| HM005 | SRX375923 | ILLUMINA | PAIRED |     247 | SRR1034083 | 18,903,805 | 3.17G |
+| HM007 | SRX375930 | ILLUMINA | PAIRED |     229 | SRR1034090 | 22,213,827 | 3.72G |
+| HM008 | SRX375937 | ILLUMINA | PAIRED |     214 | SRR1034097 | 21,766,454 | 3.65G |
+| HM011 | SRX375943 | ILLUMINA | PAIRED |     228 | SRR1034103 | 15,624,226 | 2.62G |
+| HM012 | SRX375962 | ILLUMINA | PAIRED |     351 | SRR1034122 | 16,190,747 | 2.71G |
+| HM014 | SRX375910 | ILLUMINA | PAIRED |     293 | SRR1034070 | 29,010,895 | 4.86G |
+| HM015 | SRX375948 | ILLUMINA | PAIRED |     298 | SRR1034108 | 20,171,851 | 3.38G |
+| HM016 | SRX375953 | ILLUMINA | PAIRED |     299 | SRR1034113 | 22,543,648 | 3.78G |
+| HM017 | SRX376069 | ILLUMINA | PAIRED |     256 | SRR1034229 | 18,409,555 | 3.09G |
+| HM019 | SRX375978 | ILLUMINA | PAIRED |     341 | SRR1034138 | 17,367,340 | 2.91G |
+| HM020 | SRX376071 | ILLUMINA | PAIRED |     241 | SRR1034231 | 17,181,113 | 2.88G |
+| HM022 | SRX376075 | ILLUMINA | PAIRED |     266 | SRR1034235 | 18,096,959 | 3.03G |
+| HM026 | SRX375990 | ILLUMINA | PAIRED |     315 | SRR1034150 | 12,887,454 | 2.16G |
+| HM027 | SRX376004 | ILLUMINA | PAIRED |     292 | SRR1034164 | 20,996,668 | 3.52G |
 
 * Failed to assemble
-  * HM016 -
+    * HM016 -
 
 ## Symlink
 
