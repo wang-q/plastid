@@ -1,19 +1,18 @@
 # 🍅 *Solanum lycopersicum* 360 accessions
 
-[TOC levels=1-3]: # ""
-
-- [🍅 *Solanum lycopersicum* 360 accessions](#-solanum-lycopersicum-360-accessions)
-  - [Basic info](#basic-info)
-  - [Project](#project)
-  - [Other Projects](#other-projects)
-  - [Download](#download)
-    - [Reference](#reference)
-    - [Illumina](#illumina)
-  - [Symlink](#symlink)
-  - [Run](#run)
-  - [Pack and clean](#pack-and-clean)
-  - [VCF](#vcf)
-
+<!-- TOC -->
+* [🍅 *Solanum lycopersicum* 360 accessions](#-solanum-lycopersicum-360-accessions)
+  * [Basic info](#basic-info)
+  * [Project](#project)
+  * [Other Projects](#other-projects)
+  * [Download](#download)
+    * [Reference](#reference)
+    * [Illumina](#illumina)
+  * [Symlink](#symlink)
+  * [Run](#run)
+  * [Pack and clean](#pack-and-clean)
+  * [VCF](#vcf)
+<!-- TOC -->
 
 ## Basic info
 
@@ -21,21 +20,17 @@
 * Chloroplast: [NC_007898](https://www.ncbi.nlm.nih.gov/nuccore/NC_007898), 155461 bp
 * Mitochondrion: [NC_035963](https://www.ncbi.nlm.nih.gov/nuccore/NC_035963), 446257 bp
 
-
 ## Project
 
 * [PRJNA259308](https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA259308)
 
 * <https://www.nature.com/articles/ng.3117>
 
-
 ## Other Projects
-
 
 https://solgenomics.net/projects/varitome
 
 https://www.ncbi.nlm.nih.gov/bioproject/PRJNA454805
-
 
 ## Download
 
@@ -57,17 +52,17 @@ NC_035963${TAB}Mt
 EOF
 
 cat NC_007898.fa NC_035963.fa |
-    faops filter -s stdin stdout |
-    faops replace stdin replace.tsv stdout |
-    faops order stdin <(echo Pt; echo Mt) genome.fa
+    hnsm filter -s stdin |
+    hnsm replace stdin replace.tsv |
+    hnsm order stdin <(echo Pt; echo Mt) -o genome.fa
 
 ```
 
 ### Illumina
 
 * Download `Metadata` from NCBI SRA Run Selector via a web browser
-  * https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA259308
-  * Save it to `SraRunTable.txt`
+    * https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA259308
+    * Save it to `SraRunTable.csv`
 
 * "Supplementary Table 1" of <https://www.nature.com/articles/ng.3117> provides detailed info
 
@@ -75,12 +70,12 @@ cat NC_007898.fa NC_035963.fa |
 mkdir -p ~/data/plastid/Slyc_360/ena
 cd ~/data/plastid/Slyc_360/ena
 
-cat SraRunTable.txt |
+cat SraRunTable.csv |
     mlr --icsv --otsv cat \
     > SraRunTable.tsv
 
 cat SraRunTable.tsv |
-    tsv-select -H -f Experiment,"Sample\ Name",Population,collected_by,Bases,AvgSpotLen |
+    tsv-select -H -f Experiment,"Sample\ Name",population,collected_by,Bases,AvgSpotLen |
     tsv-filter -H \
         --not-blank collected_by \
         --istr-ne collected_by:missing \
@@ -97,10 +92,10 @@ cat SraRunTable.tsv |
 anchr ena info | perl - -v source.csv > ena_info.yml
 anchr ena prep | perl - ena_info.yml --ascp
 
-mlr --icsv --omd cat ena_info.csv | head -n 20
+rgr md ena_info.tsv --fmt | head -n 20
 
 cat ena_info.ascp.sh |
-    parallel --no-run-if-empty -j 1 "{}"
+    parallel --no-run-if-empty -j 2 "{}"
 
 # Skips
 cat ena_info.csv |
@@ -136,27 +131,26 @@ cat ena_info.csv |
 
 ```
 
-| name   | srx       | platform | layout | ilength | srr        | spots    | bases |
-|:-------|:----------|:---------|:-------|:--------|:-----------|:---------|:------|
-| TS-1   | SRX698594 | ILLUMINA | PAIRED |         | SRR1572452 | 34236150 | 4.78G |
-| TS-10  | SRX698603 | ILLUMINA | PAIRED |         | SRR1572461 | 38680247 | 7.2G  |
-| TS-100 | SRX698641 | ILLUMINA | PAIRED |         | SRR1572499 | 47200811 | 8.79G |
-| TS-102 | SRX698644 | ILLUMINA | PAIRED |         | SRR1572502 | 30800219 | 5.74G |
-| TS-104 | SRX698647 | ILLUMINA | PAIRED |         | SRR1572505 | 37228653 | 6.93G |
-| TS-105 | SRX698503 | ILLUMINA | PAIRED |         | SRR1572361 | 42135898 | 7.85G |
-| TS-106 | SRX698504 | ILLUMINA | PAIRED |         | SRR1572362 | 35746785 | 6.66G |
-| TS-107 | SRX698505 | ILLUMINA | PAIRED |         | SRR1572363 | 40467328 | 7.54G |
-| TS-108 | SRX698648 | ILLUMINA | PAIRED |         | SRR1572506 | 23184310 | 4.32G |
-| TS-110 | SRX698649 | ILLUMINA | PAIRED |         | SRR1572507 | 33544567 | 6.25G |
-| TS-112 | SRX698652 | ILLUMINA | PAIRED |         | SRR1572510 | 47680880 | 8.88G |
-| TS-114 | SRX698654 | ILLUMINA | PAIRED |         | SRR1572512 | 27504680 | 5.12G |
-| TS-116 | SRX698507 | ILLUMINA | PAIRED |         | SRR1572365 | 33299923 | 6.2G  |
-| TS-117 | SRX698656 | ILLUMINA | PAIRED |         | SRR1572514 | 28610182 | 5.33G |
-| TS-118 | SRX698508 | ILLUMINA | PAIRED |         | SRR1572366 | 31511933 | 5.87G |
-| TS-119 | SRX698511 | ILLUMINA | PAIRED |         | SRR1572369 | 27822589 | 5.18G |
-| TS-121 | SRX698658 | ILLUMINA | PAIRED |         | SRR1572516 | 31601728 | 5.89G |
-| TS-122 | SRX698660 | ILLUMINA | PAIRED |         | SRR1572518 | 35012707 | 6.52G |
-
+| name   | srx       | platform | layout | ilength | srr        |      spots | bases |
+|--------|-----------|----------|--------|---------|------------|-----------:|-------|
+| TS-1   | SRX698594 | ILLUMINA | PAIRED |         | SRR1572452 | 34,236,150 | 4.78G |
+| TS-10  | SRX698603 | ILLUMINA | PAIRED |         | SRR1572461 | 38,680,247 | 7.2G  |
+| TS-100 | SRX698641 | ILLUMINA | PAIRED |         | SRR1572499 | 47,200,811 | 8.79G |
+| TS-102 | SRX698644 | ILLUMINA | PAIRED |         | SRR1572502 | 30,800,219 | 5.74G |
+| TS-104 | SRX698647 | ILLUMINA | PAIRED |         | SRR1572505 | 37,228,653 | 6.93G |
+| TS-105 | SRX698503 | ILLUMINA | PAIRED |         | SRR1572361 | 42,135,898 | 7.85G |
+| TS-106 | SRX698504 | ILLUMINA | PAIRED |         | SRR1572362 | 35,746,785 | 6.66G |
+| TS-107 | SRX698505 | ILLUMINA | PAIRED |         | SRR1572363 | 40,467,328 | 7.54G |
+| TS-108 | SRX698648 | ILLUMINA | PAIRED |         | SRR1572506 | 23,184,310 | 4.32G |
+| TS-110 | SRX698649 | ILLUMINA | PAIRED |         | SRR1572507 | 33,544,567 | 6.25G |
+| TS-112 | SRX698652 | ILLUMINA | PAIRED |         | SRR1572510 | 47,680,880 | 8.88G |
+| TS-114 | SRX698654 | ILLUMINA | PAIRED |         | SRR1572512 | 27,504,680 | 5.12G |
+| TS-116 | SRX698507 | ILLUMINA | PAIRED |         | SRR1572365 | 33,299,923 | 6.2G  |
+| TS-117 | SRX698656 | ILLUMINA | PAIRED |         | SRR1572514 | 28,610,182 | 5.33G |
+| TS-118 | SRX698508 | ILLUMINA | PAIRED |         | SRR1572366 | 31,511,933 | 5.87G |
+| TS-119 | SRX698511 | ILLUMINA | PAIRED |         | SRR1572369 | 27,822,589 | 5.18G |
+| TS-121 | SRX698658 | ILLUMINA | PAIRED |         | SRR1572516 | 31,601,728 | 5.89G |
+| TS-122 | SRX698660 | ILLUMINA | PAIRED |         | SRR1572518 | 35,012,707 | 6.52G |
 
 ## Symlink
 
