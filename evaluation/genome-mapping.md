@@ -309,10 +309,10 @@ anchr ena prep | perl - ena_info.yml --ascp
 
 rgr md ena_info.tsv --fmt
 
-#cat ena_info.ascp.sh |
-#    parallel --no-run-if-empty -j 1 "{}"
+cat ena_info.ascp.sh |
+    parallel --no-run-if-empty -j 2 "{}"
 
-aria2c -j 4 -x 4 -s 1 -c -i ena_info.ftp.txt
+#aria2c -j 4 -x 4 -s 1 -c -i ena_info.ftp.txt
 md5sum --check ena_info.md5.txt
 
 # Bad quality
